@@ -6,3 +6,7 @@ build/
 *.sqlite
 .DS_Store
 coverage/
+
+# Docker data volume (SQLite DB files)
+backend/data/
+

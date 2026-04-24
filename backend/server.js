@@ -7,6 +7,11 @@ const { getDb, initDb } = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Health check endpoint for Docker / NAS
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Default admin PIN
 const DEFAULT_PIN = '123456';
 
@@ -16,6 +21,9 @@ const sessions = {};
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Detect API base URL for Docker/NAS deployments
+const API_BASE_URL = process.env.API_BASE_URL || `http://localhost:${PORT}`;
 
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, '../frontend')));

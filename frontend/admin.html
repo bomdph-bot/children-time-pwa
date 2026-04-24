@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>家长后台 - 时间小管家</title>
   <link rel="stylesheet" href="admin.css">
+  <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
   <!-- Login Page -->
@@ -222,5 +223,13 @@
   </div>
 
   <script src="admin.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .catch((err) => console.warn('SW registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>

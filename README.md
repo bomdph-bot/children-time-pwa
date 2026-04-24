@@ -68,3 +68,93 @@ fix/issue-编号-简短描述
 ## 详细开发指南
 
 见：`docs/development-guide.md`
+
+## 部署
+
+### 本地开发
+
+```bash
+npm install
+npm start
+```
+
+访问：`http://localhost:3000`
+儿童端：`http://localhost:3000`
+家长后台：`http://localhost:3000/admin.html`
+
+### Docker 部署
+
+#### 本地 Docker
+
+```bash
+# 构建并启动
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f
+
+# 停止
+docker-compose down
+```
+
+#### 群晖 NAS（Synology DSM）
+
+1. **安装 Docker 套件**
+   - 打开"套件中心" → 搜索 "Docker" → 安装
+
+2. **上传项目文件**
+   - 通过 File Station 或 SCP 上传项目到 NAS，例如：`/docker/children-time-pwa/`
+
+3. **启动容器**
+   SSH 到 NAS（以 admin 身份），执行：
+
+   ```bash
+   cd /volume1/docker/children-time-pwa
+   sudo docker-compose up -d
+   ```
+
+   或使用 Docker Compose v2（DSM 7+）：
+   ```bash
+   cd /volume1/docker/children-time-pwa
+   sudo docker compose up -d
+   ```
+
+4. **访问服务**
+   - 儿童端：`http://<NAS_IP>:3000`
+   - 家长后台：`http://<NAS_IP>:3000/admin.html`
+   - 默认 PIN：`123456`
+
+5. **添加 PWA 到 iPad 主屏幕**
+   - 用 iPad Safari 打开 `http://<NAS_IP>:3000`
+   - 点击 Safari 分享按钮 → "添加到主屏幕"
+   - 选择"横屏"方向，获得最佳体验
+
+#### NAS 注意事项
+
+- **API 地址**：前端会自动检测当前域名，无需配置
+- **数据持久化**：`docker-compose.yml` 中 `backend/data` 目录已挂载为 named volume，容器重启后数据不丢
+- **端口冲突**：如 3000 端口被占用，修改 `docker-compose.yml` 中的 `ports` 映射
+- **开机自启**：容器已设置 `restart: unless-stopped`，NAS 重启后会自动恢复
+
+#### 验证部署
+
+```bash
+# 检查容器状态
+docker ps
+
+# 检查健康状态
+curl http://localhost:3000/health
+# 预期返回: {"status":"ok","timestamp":"..."}
+
+# 查看日志
+docker logs children-time-pwa
+```
+
+#### 升级
+
+```bash
+cd /path/to/children-time-pwa
+git pull  # 拉取新代码
+docker-compose build
+docker-compose up -d
+```

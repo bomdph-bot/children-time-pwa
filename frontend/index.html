@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>时间小管家</title>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -64,5 +64,14 @@
   <a href="admin.html" class="admin-entrance" title="家长后台">🔐</a>
 
   <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then((reg) => console.log('SW registered:', reg.scope))
+          .catch((err) => console.warn('SW registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>
