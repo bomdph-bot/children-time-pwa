@@ -399,7 +399,7 @@ function renderTimebar() {
       blockEl.className = `timebar-block fixed${block.completed ? ' completed' : ''}${block.overdue ? ' overdue' : ''}`;
       blockEl.style.backgroundColor = block.color;
       blockEl.style.width = `${Math.max(widthPercent, 3)}%`;
-      blockEl.style.marginLeft = `${leftPercent}%`;
+      blockEl.style.left = `${leftPercent}%`;
       blockEl.dataset.taskId = block.taskId;
       blockEl.dataset.taskType = 'fixed';
 
@@ -435,7 +435,9 @@ function renderTimebar() {
 
     blockEl.style.backgroundColor = block.color;
     blockEl.style.width = `${widthPercent}%`;
-    blockEl.style.marginRight = `${rightOffset}%`;
+    blockEl.style.right = `${rightOffset}%`;
+    blockEl.style.top = '50%';
+    blockEl.style.transform = 'translateY(-50%)';
     blockEl.dataset.taskId = block.taskId;
     blockEl.dataset.taskType = 'flexible';
 
@@ -459,6 +461,9 @@ function renderTimebar() {
     const freeEl = document.createElement('div');
     freeEl.className = 'timebar-block free';
     freeEl.style.width = `${Math.max(freePercent, 5)}%`;
+    freeEl.style.right = `${rightOffset}%`;
+    freeEl.style.top = '50%';
+    freeEl.style.transform = 'translateY(-50%)';
     freeEl.innerHTML = `
       <span class="block-name">🎉 自由时间</span>
       <span class="block-time">${layout.freeMinutes} 分钟</span>

@@ -343,9 +343,6 @@ body {
 .timebar-row {
   position: relative;
   height: 72px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
   overflow: hidden;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.2);
@@ -377,8 +374,10 @@ body {
 
 /* 任务块基础样式 */
 .timebar-block {
-  position: relative;
+  position: absolute;
   height: 56px;
+  top: 50%;
+  transform: translateY(-50%);
   border-radius: 10px;
   display: flex;
   flex-direction: column;
@@ -388,7 +387,6 @@ body {
   transition: all 0.3s ease;
   box-shadow: var(--shadow-card);
   z-index: 2;
-  flex-shrink: 0;
   overflow: hidden;
 }
 
