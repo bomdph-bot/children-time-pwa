@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>时间小管家</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Child Selector Header -->
+    <header class="header">
+      <div class="child-selector" id="childSelector">
+        <button class="child-btn selected" data-child-id="child_1">👦 大宝</button>
+        <button class="child-btn" data-child-id="child_2">👧 二宝</button>
+      </div>
+      <div class="date-display" id="dateDisplay"></div>
+    </header>
+
+    <!-- Time Bar -->
+    <div class="time-bar-container">
+      <div class="time-labels">
+        <span>07:00</span>
+        <span>12:00</span>
+        <span>17:00</span>
+        <span>21:00</span>
+      </div>
+      <div class="time-bar" id="timeBar">
+        <div class="time-consumed" id="timeConsumed"></div>
+        <div class="free-time" id="freeTime"></div>
+        <div class="tasks-area" id="tasksArea"></div>
+      </div>
+      <div class="current-time-indicator" id="currentTimeIndicator"></div>
+    </div>
+
+    <!-- Task Cards -->
+    <div class="tasks-section">
+      <h2 class="section-title">📋 今日任务</h2>
+      <div class="task-list" id="taskList"></div>
+    </div>
+
+    <!-- Overdue Tasks -->
+    <div class="overdue-section" id="overdueSection" style="display: none;">
+      <h2 class="section-title overdue-title">⚠️ 超时任务</h2>
+      <div class="task-list" id="overdueTaskList"></div>
+    </div>
+
+    <!-- Encouragement Area -->
+    <div class="encouragement-area" id="encouragementArea">
+      <div class="encouragement-card">
+        <span class="encouragement-icon">🌟</span>
+        <p class="encouragement-text" id="encouragementText">加油！合理安排时间，就能玩得更开心！</p>
+      </div>
+    </div>
+
+    <!-- Reset Button -->
+    <button class="reset-btn" id="resetBtn">🔄 重置今日任务</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
