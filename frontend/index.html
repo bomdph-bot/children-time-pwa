@@ -49,6 +49,10 @@
     <div class="time-card">
       <div class="time-display" id="currentTime">--:--:--</div>
       <div class="date-display" id="currentDate">----年--月--日</div>
+      <!-- 模拟时间指示器 -->
+      <div class="sim-time-indicator" id="simTimeIndicator" style="display:none;">
+        模拟时间: <span id="simTimeValue">--:--</span>
+      </div>
     </div>
 
     <!-- 主时间条区域 -->
@@ -59,18 +63,9 @@
           <span class="timeline-hint">点击任务标记完成</span>
         </div>
 
-        <div class="timeline-track" id="timelineTrack">
-          <!-- 时间刻度 -->
-          <div class="timeline-ruler">
-            <span class="ruler-start">07:00</span>
-            <div class="ruler-ticks" id="rulerTicks"></div>
-            <span class="ruler-end">21:00</span>
-          </div>
-
-          <!-- 任务与自由时间条 -->
-          <div class="timeline-row" id="timelineRow">
-            <!-- 动态生成任务块和自由时间块 -->
-          </div>
+        <!-- 时间条容器 -->
+        <div class="timebar-container" id="timebarContainer">
+          <!-- 动态生成：已消耗区域 + 任务块 + 自由时间 -->
         </div>
 
         <!-- 图例 -->
@@ -102,11 +97,7 @@
     <section class="overtime-section" id="overtimeSection">
       <div class="section-title">⏰ 超时任务</div>
       <div class="overtime-list" id="overtimeList">
-        <!-- 超时任务示例 -->
-        <div class="overtime-item">
-          <span class="overtime-dot"></span>
-          <span class="overtime-text">数学作业 - 超时 15 分钟</span>
-        </div>
+        <!-- 超时任务动态生成 -->
       </div>
     </section>
 
@@ -121,7 +112,7 @@
 
     <!-- 家长入口 -->
     <button class="parent-btn" id="parentBtn" aria-label="家长入口">
-      <span>👨‍👩‍👧</span>
+      <span>👨👩👧</span>
       <span class="parent-btn-text">家长</span>
     </button>
   </div>
