@@ -25,6 +25,7 @@
   --overtime-red: #FF4757;
   --success-gold: #FFB800;
   --glow-blue: rgba(77, 150, 255, 0.6);
+  --elapsed-dark: rgba(30, 30, 60, 0.8);
 
   /* 文字 */
   --text-primary: #ffffff;
@@ -34,6 +35,11 @@
   /* 阴影 */
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
   --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.5);
+
+  /* 时间常量 */
+  --day-start: 7;
+  --day-end: 21;
+  --total-hours: 14;
 }
 
 /* Reset & Base */
@@ -227,6 +233,17 @@ body {
   margin-top: 4px;
 }
 
+/* 模拟时间指示器 */
+.sim-time-indicator {
+  margin-top: 8px;
+  padding: 4px 12px;
+  background: rgba(255, 184, 0, 0.2);
+  border-radius: 12px;
+  font-size: 12px;
+  color: var(--success-gold);
+  display: inline-block;
+}
+
 /* ========================================
    主时间条区域
    ======================================== */
@@ -265,80 +282,115 @@ body {
   color: var(--text-muted);
 }
 
-.timeline-track {
+/* ========================================
+   时间条容器（核心）
+   ======================================== */
+
+.timebar-container {
+  position: relative;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   padding: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  min-height: 120px;
 }
 
-/* 时间刻度 */
-.timeline-ruler {
+/* 时间刻度尺 */
+.timebar-ruler {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  padding: 0 4px;
 }
 
-.ruler-start,
-.ruler-end {
-  font-size: 12px;
+.ruler-start, .ruler-end {
+  font-size: 11px;
   color: var(--text-muted);
-  min-width: 40px;
+  min-width: 36px;
 }
 
 .ruler-ticks {
   flex: 1;
-  height: 20px;
   position: relative;
-  background: repeating-linear-gradient(
-    90deg,
-    transparent,
-    transparent calc(100% / 14 - 1px),
-    rgba(255, 255, 255, 0.2) calc(100% / 14),
-    transparent calc(100% / 14)
-  );
+  height: 16px;
 }
 
-.ruler-ticks::before {
-  content: '';
+.ruler-tick {
   position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-50%);
+  top: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
 }
 
-/* 时间行 */
-.timeline-row {
-  min-height: 100px;
+.ruler-tick::before {
+  content: '';
+  width: 1px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.ruler-tick-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+/* 时间条主体行 */
+.timebar-row {
   position: relative;
+  height: 72px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* 已消耗时间区域（左侧暗色） */
+.timebar-elapsed {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--elapsed-dark);
+  border-right: 2px dashed rgba(255, 255, 255, 0.2);
+  z-index: 1;
+  transition: width 0.5s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  padding: 8px 0;
+  justify-content: flex-end;
+  padding-right: 4px;
 }
 
-/* 任务块 */
-.task-block {
-  position: relative;
-  height: 64px;
-  border-radius: 12px;
+.elapsed-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  opacity: 0.6;
+}
+
+/* 任务块基础样式 */
+.timebar-block {
+  position: absolute;
+  height: 56px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 8px 14px;
+  padding: 6px 10px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   box-shadow: var(--shadow-card);
-  min-width: 100px;
+  z-index: 2;
   overflow: hidden;
 }
 
-.task-block::before {
+.timebar-block::before {
   content: '';
   position: absolute;
   top: 0;
@@ -348,59 +400,130 @@ body {
   background: inherit;
   filter: brightness(1.1);
   z-index: -1;
-  border-radius: 12px;
+  border-radius: inherit;
 }
 
-.task-block:active {
+.timebar-block:active {
   transform: scale(0.97);
 }
 
-.task-block.completed {
-  opacity: 0.6;
-  filter: grayscale(30%);
+.timebar-block.completed {
+  opacity: 0.5;
+  filter: grayscale(40%);
 }
 
-.task-block.completed::after {
+.timebar-block.completed::after {
   content: '✓';
   position: absolute;
-  top: 4px;
-  right: 6px;
-  font-size: 14px;
+  top: 3px;
+  right: 5px;
+  font-size: 12px;
   color: white;
+  font-weight: bold;
 }
 
-.task-name {
-  font-size: 14px;
+/* 固定任务块 */
+.timebar-block.fixed {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* 弹性任务块 */
+.timebar-block.flexible {
+  border: 2px solid transparent;
+}
+
+/* 紧迫状态 - 边缘发光 */
+.timebar-block.urgent {
+  animation: urgent-pulse 1.5s ease-in-out infinite;
+  box-shadow:
+    var(--shadow-card),
+    0 0 15px rgba(255, 71, 87, 0.6),
+    inset 0 0 10px rgba(255, 71, 87, 0.3);
+}
+
+@keyframes urgent-pulse {
+  0%, 100% {
+    box-shadow:
+      var(--shadow-card),
+      0 0 15px rgba(255, 71, 87, 0.6),
+      inset 0 0 10px rgba(255, 71, 87, 0.3);
+  }
+  50% {
+    box-shadow:
+      var(--shadow-card),
+      0 0 25px rgba(255, 71, 87, 0.8),
+      inset 0 0 15px rgba(255, 71, 87, 0.5);
+  }
+}
+
+/* 严重紧迫 - 发热膨胀抖动 */
+.timebar-block.critical {
+  animation: critical-shake 0.5s ease-in-out infinite, critical-glow 1s ease-in-out infinite;
+  transform: scale(1.02);
+}
+
+@keyframes critical-shake {
+  0%, 100% { transform: translateX(0) scale(1.02); }
+  25% { transform: translateX(-2px) scale(1.02); }
+  75% { transform: translateX(2px) scale(1.02); }
+}
+
+@keyframes critical-glow {
+  0%, 100% {
+    box-shadow:
+      var(--shadow-card),
+      0 0 20px rgba(255, 71, 87, 0.7),
+      inset 0 0 15px rgba(255, 71, 87, 0.4);
+  }
+  50% {
+    box-shadow:
+      var(--shadow-card),
+      0 0 35px rgba(255, 71, 87, 0.9),
+      inset 0 0 20px rgba(255, 71, 87, 0.6);
+  }
+}
+
+/* 被挤压的任务（已过开始时间但未完成） */
+.timebar-block.squeezed {
+  filter: brightness(1.15);
+}
+
+.block-name {
+  font-size: 13px;
   font-weight: 600;
   color: white;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.task-time {
-  font-size: 11px;
-  color: rgba(255,255,255,0.8);
+.block-time {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.85);
   margin-top: 2px;
 }
 
-/* 自由时间块 */
-.free-block {
-  height: 64px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--task-free), #2d7dd2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 16px;
-  box-shadow:
-    var(--shadow-card),
-    0 0 20px var(--glow-blue);
-  min-width: 80px;
+.block-duration {
+  position: absolute;
+  bottom: 3px;
+  right: 6px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.free-text {
-  font-size: 14px;
-  font-weight: 600;
-  color: white;
+/* 自由时间块 - 蓝色荧光 */
+.timebar-block.free {
+  background: linear-gradient(135deg, var(--task-free), #2d7dd2);
+  box-shadow:
+    var(--shadow-card),
+    0 0 20px var(--glow-blue),
+    inset 0 0 15px rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(77, 150, 255, 0.5);
+}
+
+.timebar-block.free .block-name {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 /* ========================================
@@ -602,7 +725,7 @@ body {
   border-radius: 50%;
 }
 
-.task-block:focus-visible {
+.timebar-block:focus-visible {
   outline: 2px solid white;
   outline-offset: 2px;
 }
