@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>儿童时间小管家</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <span class="child-avatar" id="child-avatar">👧</span>
+        <span class="child-name" id="child-name">小美</span>
+      </div>
+      <div class="header-center">
+        <div class="current-time" id="current-time">07:00</div>
+        <div class="current-date" id="current-date">4月24日 周五</div>
+      </div>
+      <div class="header-right">
+        <span class="free-time-label">剩余自由时间</span>
+        <span class="free-time-value" id="free-time-value">--:--</span>
+      </div>
+    </header>
+
+    <!-- Progress Info -->
+    <div class="progress-info">
+      <div class="progress-stat">
+        <span class="stat-num" id="completed-count">0</span>
+        <span class="stat-label">已完成</span>
+      </div>
+      <div class="progress-stat">
+        <span class="stat-num" id="remaining-count">0</span>
+        <span class="stat-label">剩余任务</span>
+      </div>
+      <div class="progress-stat overdue-stat">
+        <span class="stat-num" id="overdue-count">0</span>
+        <span class="stat-label">超时补做</span>
+      </div>
+    </div>
+
+    <!-- Main Timeline -->
+    <main class="main">
+      <div class="timebar-container" id="timebar-container">
+        <!-- Time labels row -->
+        <div class="time-labels" id="time-labels"></div>
+        <!-- Task blocks row -->
+        <div class="task-row" id="task-row"></div>
+      </div>
+
+      <!-- Overdue Zone -->
+      <div class="overdue-zone" id="overdue-zone">
+        <div class="overdue-header">
+          <span class="overdue-icon">⏰</span>
+          <span class="overdue-title">超时任务 · 需要补做</span>
+        </div>
+        <div class="overdue-tasks" id="overdue-tasks"></div>
+      </div>
+
+      <!-- Reward Zone -->
+      <div class="reward-zone hidden" id="reward-zone">
+        <div class="reward-content">
+          <span class="reward-emoji">🎉</span>
+          <span class="reward-text">太棒了！任务完成！</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- Sim Controls (dev only) -->
+    <div class="sim-controls">
+      <button class="sim-btn" id="sim-btn">⏵ 加速时间</button>
+      <span class="sim-speed" id="sim-speed">1x</span>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

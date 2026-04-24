@@ -1,0 +1,544 @@
+/* ========================================
+   儿童时间小管家 - 样式
+   ======================================== */
+
+:root {
+  --bg-deep: #0d0d2b;
+  --bg-main: #111133;
+  --accent-blue: #4fc3f7;
+  --accent-glow: #29b6f6;
+  --free-blue: #00e5ff;
+  --free-glow: rgba(0, 229, 255, 0.6);
+  --task-normal: #6c5ce7;
+  --task-light: #a29bfe;
+  --urgency-light: #ffa502;
+  --urgency-glow: rgba(255, 165, 2, 0.5);
+  --urgency-urgent: #ff6348;
+  --urgency-critical: #ff2d2d;
+  --urgency-critical-glow: rgba(255, 45, 45, 0.6);
+  --overdue-bg: rgba(255, 45, 45, 0.15);
+  --overdue-border: rgba(255, 45, 45, 0.4);
+  --card-bg: rgba(255, 255, 255, 0.08);
+  --card-border: rgba(255, 255, 255, 0.12);
+  --text-primary: #f0f0ff;
+  --text-secondary: rgba(240, 240, 255, 0.6);
+  --text-muted: rgba(240, 240, 255, 0.35);
+  --reward-gold: #ffd700;
+  --star-color: rgba(255, 255, 255, 0.8);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---- App Layout ---- */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 1000px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* ---- Header ---- */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.child-avatar {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.child-name {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.header-center {
+  text-align: center;
+}
+
+.current-time {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  text-shadow: 0 0 20px rgba(79, 195, 247, 0.4);
+}
+
+.current-date {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.header-right {
+  text-align: right;
+}
+
+.free-time-label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.free-time-value {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--free-blue);
+  text-shadow: 0 0 12px var(--free-glow);
+}
+
+/* ---- Progress Info ---- */
+.progress-info {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
+}
+
+.progress-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat-num {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.overdue-stat .stat-num {
+  color: var(--urgency-critical);
+}
+
+/* ---- Main ---- */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 16px 16px 0;
+  gap: 12px;
+}
+
+/* ---- Timebar Container ---- */
+.timebar-container {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Time Labels */
+.time-labels {
+  display: flex;
+  height: 28px;
+  align-items: center;
+  padding: 0 8px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.time-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+/* Task Row */
+.task-row {
+  position: relative;
+  height: 80px;
+  padding: 8px 0;
+}
+
+/* ---- Task Blocks ---- */
+.task-block {
+  position: absolute;
+  top: 8px;
+  height: calc(100% - 16px);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, background 0.3s ease;
+  overflow: hidden;
+  min-width: 48px;
+}
+
+.task-block-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 6px;
+  width: 100%;
+  height: 100%;
+}
+
+.task-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.task-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.task-duration {
+  font-size: 10px;
+  color: rgba(255,255,255,0.75);
+}
+
+/* Normal state */
+.task-block[data-type="fixed"] {
+  background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.task-block[data-type="flexible"] {
+  background: linear-gradient(135deg, #74b9ff, #0984e3);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* Fixed tasks not clickable */
+.task-block[data-type="fixed"] {
+  cursor: default;
+  opacity: 0.85;
+}
+
+/* ---- Urgency States ---- */
+
+/* Light urgency — edge glow */
+.task-block.urgency-light {
+  box-shadow: 0 0 0 2px var(--urgency-light), 0 0 12px var(--urgency-glow);
+}
+
+/* Urgent — orange-red + slight inflation */
+.task-block.urgency-urgent {
+  background: linear-gradient(135deg, var(--urgency-urgent), #e55039) !important;
+  transform: scale(1.04);
+  box-shadow: 0 0 16px var(--urgency-glow), 0 4px 12px rgba(0,0,0,0.3);
+  animation: pulse-urgent 1.5s ease-in-out infinite;
+}
+
+/* Critical — heat + shake */
+.task-block.urgency-critical {
+  background: linear-gradient(135deg, var(--urgency-critical), #c0392b) !important;
+  transform: scale(1.08);
+  box-shadow: 0 0 24px var(--urgency-critical-glow), 0 6px 16px rgba(0,0,0,0.4);
+  animation: shake-critical 0.5s ease-in-out infinite;
+}
+
+/* ---- Animations ---- */
+@keyframes pulse-urgent {
+  0%, 100% { box-shadow: 0 0 16px var(--urgency-glow), 0 4px 12px rgba(0,0,0,0.3); }
+  50% { box-shadow: 0 0 28px var(--urgency-glow), 0 4px 12px rgba(0,0,0,0.3); }
+}
+
+@keyframes shake-critical {
+  0%, 100% { transform: scale(1.08) translateX(0); }
+  25% { transform: scale(1.08) translateX(-2px); }
+  75% { transform: scale(1.08) translateX(2px); }
+}
+
+/* Completed — fade out then slide */
+.task-block.task-completed {
+  animation: task-complete 0.5s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes task-complete {
+  0% { opacity: 1; transform: scale(1); }
+  40% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 0; transform: scale(0.6) translateY(-20px); }
+}
+
+/* ---- Overdue Zone ---- */
+.overdue-zone {
+  background: var(--overdue-bg);
+  border: 1px dashed var(--overdue-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  flex-shrink: 0;
+  min-height: 60px;
+}
+
+.overdue-zone.hidden {
+  display: none;
+}
+
+.overdue-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.overdue-icon {
+  font-size: 18px;
+}
+
+.overdue-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--urgency-critical);
+}
+
+.overdue-tasks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.overdue-task {
+  background: rgba(255, 45, 45, 0.2);
+  border: 1px solid rgba(255, 45, 45, 0.35);
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.overdue-task:hover {
+  background: rgba(255, 45, 45, 0.3);
+  transform: scale(1.03);
+}
+
+.overdue-task:active {
+  transform: scale(0.97);
+}
+
+.overdue-task-icon {
+  font-size: 16px;
+}
+
+.overdue-task-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.overdue-task-badge {
+  font-size: 10px;
+  background: var(--urgency-critical);
+  color: #fff;
+  border-radius: 8px;
+  padding: 1px 6px;
+  font-weight: 600;
+}
+
+/* ---- Reward Zone ---- */
+.reward-zone {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 215, 0, 0.15);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 20px;
+  padding: 12px 24px;
+  backdrop-filter: blur(8px);
+  animation: reward-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 100;
+}
+
+.reward-zone.hidden {
+  display: none;
+}
+
+@keyframes reward-pop {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+  100% { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+
+.reward-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reward-emoji {
+  font-size: 28px;
+  animation: bounce 0.6s ease infinite alternate;
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-6px); }
+}
+
+.reward-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--reward-gold);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+/* ---- Simulation Controls ---- */
+.sim-controls {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 200;
+}
+
+.sim-btn {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: var(--text-primary);
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s;
+}
+
+.sim-btn:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+.sim-btn:active {
+  background: rgba(255,255,255,0.08);
+}
+
+.sim-speed {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: rgba(0,0,0,0.3);
+  border-radius: 10px;
+  padding: 3px 8px;
+}
+
+/* ---- Free Time Block ---- */
+.free-block {
+  position: absolute;
+  top: 8px;
+  height: calc(100% - 16px);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.3), rgba(79, 195, 247, 0.2));
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 0 16px var(--free-glow), inset 0 0 12px rgba(0, 229, 255, 0.1);
+}
+
+.free-block-label {
+  font-size: 10px;
+  color: var(--free-blue);
+  font-weight: 600;
+  text-shadow: 0 0 8px var(--free-glow);
+}
+
+.free-block-time {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--free-blue);
+  text-shadow: 0 0 8px var(--free-glow);
+}
+
+/* ---- Fixed Task Block ---- */
+.fixed-block {
+  position: absolute;
+  top: 8px;
+  height: calc(100% - 16px);
+  background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* ---- Done Block (placeholder) ---- */
+.done-placeholder {
+  position: absolute;
+  top: 8px;
+  height: calc(100% - 16px);
+  background: rgba(255,255,255,0.03);
+  border: 1px dashed rgba(255,255,255,0.1);
+  border-radius: 12px;
+}
+
+/* ---- Stars decoration ---- */
+.timebar-container::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 200px;
+  background:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1.5px 1.5px at 50% 10%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 70% 40%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 90% 70%, rgba(255,255,255,0.5), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
