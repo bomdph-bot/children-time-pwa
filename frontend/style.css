@@ -456,6 +456,26 @@ body {
   }
 }
 
+/* 轻微紧迫 - 橙黄色边缘发光 */
+.timebar-block.pressure-1 {
+  animation: slight-pressure 2s ease-in-out infinite;
+}
+
+@keyframes slight-pressure {
+  0%, 100% {
+    box-shadow:
+      var(--shadow-card),
+      0 0 8px rgba(255, 184, 0, 0.5),
+      inset 0 0 5px rgba(255, 184, 0, 0.2);
+  }
+  50% {
+    box-shadow:
+      var(--shadow-card),
+      0 0 15px rgba(255, 184, 0, 0.7),
+      inset 0 0 8px rgba(255, 184, 0, 0.3);
+  }
+}
+
 /* 严重紧迫 - 发热膨胀抖动 */
 .timebar-block.critical {
   animation: critical-shake 0.5s ease-in-out infinite, critical-glow 1s ease-in-out infinite;

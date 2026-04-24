@@ -436,6 +436,8 @@ function renderTimebar() {
     // 紧迫状态
     if (block.pressureLevel >= 2) {
       blockEl.classList.add(block.pressureLevel >= 3 ? 'critical' : 'urgent');
+    } else if (block.pressureLevel === 1) {
+      blockEl.classList.add('pressure-1');
     }
 
     // 挤压状态
@@ -536,7 +538,7 @@ function renderOvertime(overtimeTasks, nowMinutes) {
   listEl.innerHTML = overtimeTasks.map(task => `
     <div class="overtime-item">
       <span class="overtime-dot"></span>
-      <span class="overtime-text">${task.name} - 超时 ${task.overdueMinutes} 分钟</span>
+      <span class="overtime-text">${task.name} — 需要补做 / 超时 ${task.overdueMinutes} 分钟</span>
     </div>
   `).join('');
 }
