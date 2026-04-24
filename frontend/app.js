@@ -390,16 +390,16 @@ function renderTimebar() {
   layout.blocks
     .filter(b => b.type === 'fixed' && b.visibleEnd > nowMinutes && b.visibleStart < DAY_END)
     .forEach(block => {
-      const widthPercent = getWidthPercent(block.startMinutes, block.endMinutes, nowMinutes);
-      const leftPercent = getLeftPercent(block.startMinutes, nowMinutes);
+      const startPct = ((block.startMinutes - DAY_START) / TOTAL_MINUTES) * 100;
+      const widthPct = ((block.endMinutes - block.startMinutes) / TOTAL_MINUTES) * 100;
 
-      if (widthPercent <= 0) return; // 跳过不可见的
+      if (widthPct <= 0) return; // 跳过不可见的
 
       const blockEl = document.createElement('div');
       blockEl.className = `timebar-block fixed${block.completed ? ' completed' : ''}${block.overdue ? ' overdue' : ''}`;
       blockEl.style.backgroundColor = block.color;
-      blockEl.style.width = `${Math.max(widthPercent, 3)}%`;
-      blockEl.style.left = `${leftPercent}%`;
+      blockEl.style.left = `${startPct}%`;
+      blockEl.style.width = `${Math.max(widthPct, 3)}%`;
       blockEl.dataset.taskId = block.taskId;
       blockEl.dataset.taskType = 'fixed';
 
@@ -411,14 +411,14 @@ function renderTimebar() {
       row.appendChild(blockEl);
     });
 
-  // 2.3 弹性任务块（从 DAY_END 往左排列，最右边的 sort_order 最大）
+  // 2.3 弹性任务块
   const flexibleBlocks = layout.blocks.filter(b => b.type === 'flexible');
-  let rightOffset = 0; // 累计右偏移
 
   flexibleBlocks.forEach(block => {
-    const widthPercent = (block.durationMinutes / TOTAL_MINUTES) * 100;
+    const startPct = ((block.startMinutes - DAY_START) / TOTAL_MINUTES) * 100;
+    const widthPct = ((block.endMinutes - block.startMinutes) / TOTAL_MINUTES) * 100;
 
-    if (widthPercent <= 0) return;
+    if (widthPct <= 0) return;
 
     const blockEl = document.createElement('div');
     blockEl.className = `timebar-block flexible${block.completed ? ' completed' : ''}`;
@@ -434,8 +434,8 @@ function renderTimebar() {
     }
 
     blockEl.style.backgroundColor = block.color;
-    blockEl.style.width = `${widthPercent}%`;
-    blockEl.style.right = `${rightOffset}%`;
+    blockEl.style.left = `${startPct}%`;
+    blockEl.style.width = `${widthPct}%`;
     blockEl.style.top = '50%';
     blockEl.style.transform = 'translateY(-50%)';
     blockEl.dataset.taskId = block.taskId;
@@ -452,16 +452,21 @@ function renderTimebar() {
     `;
 
     row.appendChild(blockEl);
-    rightOffset += 4; // 间距
   });
 
   // 2.4 自由时间块
   if (layout.freeMinutes > 0) {
     const freePercent = (layout.freeMinutes / TOTAL_MINUTES) * 100;
+    // 自由时间从最后一个弹性任务的结束位置开始延续到 DAY_END
+    const lastFlexibleEnd = flexibleBlocks.length > 0
+      ? flexibleBlocks[flexibleBlocks.length - 1].endMinutes
+      : DAY_END;
+    const freeStartPct = ((lastFlexibleEnd - DAY_START) / TOTAL_MINUTES) * 100;
+
     const freeEl = document.createElement('div');
     freeEl.className = 'timebar-block free';
+    freeEl.style.left = `${freeStartPct}%`;
     freeEl.style.width = `${Math.max(freePercent, 5)}%`;
-    freeEl.style.right = `${rightOffset}%`;
     freeEl.style.top = '50%';
     freeEl.style.transform = 'translateY(-50%)';
     freeEl.innerHTML = `
