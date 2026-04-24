@@ -1,0 +1,17 @@
+{
+  "name": "children-time-pwa",
+  "version": "1.0.0",
+  "description": "儿童时间小管家 PWA",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js",
+    "test": "echo \"No tests yet\" && exit 0",
+    "serve": "echo \"Use npm start\""
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "sql.js": "^1.10.0",
+    "uuid": "^9.0.0",
+    "cors": "^2.8.5"
+  }
+}
