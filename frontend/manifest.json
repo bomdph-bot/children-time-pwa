@@ -1,0 +1,9 @@
+{
+  "name": "儿童时间小管家",
+  "short_name": "时间管家",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#16213e",
+  "icons": []
+}

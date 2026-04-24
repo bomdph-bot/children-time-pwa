@@ -1,5 +1,62 @@
 # 开发指南：儿童时间小管家 PWA
 
+> ⚙️ 本文档记录项目骨架（Issue #1）的实现细节，后续开发请以此为基准。
+
+## 项目骨架（v0.1.0）
+
+骨架目标：最小可运行闭环，满足 `npm run dev` 即可同时启动前后端。
+
+### 目录结构
+
+```
+children-time-pwa/
+├── frontend/              # 前端（HTML + CSS + 原生 JS）
+│   ├── index.html         # 单页入口
+│   ├── style.css          # 全局样式
+│   ├── app.js             # 前端 JS 入口
+│   └── manifest.json      # PWA manifest（占位）
+├── backend/               # 后端（Node.js + Express）
+│   └── server.js          # Express 服务入口，端口 3000
+├── docs/
+│   └── development-guide.md  # 本文档
+├── .github/
+│   └── ISSUE_TEMPLATE/
+│       └── README.md      # Issue 模板
+├── .gitignore
+├── README.md
+└── package.json           # npm scripts: dev / start / serve / test
+```
+
+### 启动命令
+
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | concurrently 启动后端（3000）+ 前端静态服务（8080） |
+| `npm run start` | `node backend/server.js` |
+| `npm run serve` | `npx http-server frontend -p 8080` |
+| `npm run test` | Node.js 语法检查（backend + frontend） |
+
+### 数据库状态
+
+已预留 SQLite 表结构（见下方推荐表），但 `db.init()` 在骨架阶段为占位函数，暂不实际初始化。
+
+### API 状态
+
+骨架阶段仅实现：
+- `GET /api/health` — 服务健康检查
+- `GET /api/children` — 占位，返回空数组
+- `GET /api/children/:childId/today` — 占位，返回空 tasks
+
+其余 API 随后续 Issue 实现。
+
+### 前端状态
+
+纯静态占位页面，`app.js` 仅打印初始化日志，不涉及任何业务逻辑。
+
+### PWA 状态
+
+`manifest.json` 已建立占位项，Service Worker 待后续 Issue 实现。
+
 ## 一句话产品定义
 
 这是一个给孩子看的“时间可视化仪表盘”：让孩子看到任务不是凭空出现的，而是在真实消耗自己的自由时间；越拖延，自由时间越少，任务越挤，直到超时必须补做。

@@ -65,6 +65,29 @@ feat/issue-编号-简短描述
 fix/issue-编号-简短描述
 ```
 
+## 本地启动
+
+```bash
+# 1. 安装依赖
+npm install
+
+# 2. 启动前后端（后端 3000 端口 + 前端静态服务 8080 端口）
+npm run dev
+
+# 3. 打开浏览器
+open http://localhost:8080
+```
+
+## 开发命令
+
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | 同时启动前端（8080）和后端（3000） |
+| `npm run start` | 仅启动后端（3000） |
+| `npm run serve` | 仅启动前端静态服务（8080） |
+| `npm run test` | 语法检查 |
+| `npm run lint` | 代码规范检查（占位） |
+
 ## 详细开发指南
 
 见：`docs/development-guide.md`
