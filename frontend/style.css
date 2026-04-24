@@ -503,3 +503,31 @@ body {
     font-size: 18px;
   }
 }
+
+/* ============ ADMIN ENTRANCE ============ */
+.admin-entrance {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 52px;
+  height: 52px;
+  background: var(--bg-card);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 100;
+}
+
+.admin-entrance:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+}
+
+.admin-entrance:active {
+  transform: scale(0.95);
+}
