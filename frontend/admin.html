@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>家长后台 - 时间小管家</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <!-- Login Page -->
+  <div class="login-page" id="loginPage">
+    <div class="login-card">
+      <div class="login-icon">🔐</div>
+      <h1 class="login-title">家长后台</h1>
+      <p class="login-subtitle">请输入 PIN 登录</p>
+      <div class="pin-input-group">
+        <input type="password" id="pinInput" class="pin-input" maxlength="10" placeholder="请输入 PIN" autocomplete="off">
+        <button class="pin-submit-btn" id="loginBtn">登录</button>
+      </div>
+      <p class="login-hint">默认 PIN：123456</p>
+      <p class="login-error" id="loginError" style="display: none;"></p>
+    </div>
+  </div>
+
+  <!-- Admin Page -->
+  <div class="admin-page" id="adminPage" style="display: none;">
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="header-left">
+        <h1 class="admin-title">家长后台</h1>
+      </div>
+      <div class="header-right">
+        <button class="logout-btn" id="logoutBtn">退出登录</button>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="children">孩子管理</button>
+      <button class="tab-btn" data-tab="templates">任务模板</button>
+    </div>
+
+    <!-- Children Tab -->
+    <div class="tab-content" id="childrenTab">
+      <div class="section-header">
+        <h2 class="section-title">孩子列表</h2>
+        <button class="add-btn" id="addChildBtn">+ 添加孩子</button>
+      </div>
+      <div class="children-list" id="childrenList"></div>
+    </div>
+
+    <!-- Templates Tab -->
+    <div class="tab-content" id="templatesTab" style="display: none;">
+      <div class="section-header">
+        <h2 class="section-title">任务模板</h2>
+      </div>
+      
+      <!-- Child Selector for Templates -->
+      <div class="template-child-selector" id="templateChildSelector">
+        <label>选择孩子：</label>
+        <select id="templateChildSelect">
+          <option value="">-- 请选择孩子 --</option>
+        </select>
+      </div>
+      
+      <div class="template-actions" id="templateActions" style="display: none;">
+        <button class="add-btn" id="addTemplateBtn">+ 添加任务</button>
+      </div>
+      
+      <div class="templates-list" id="templatesList"></div>
+      <div class="templates-empty" id="templatesEmpty" style="display: none;">
+        <p>请先选择孩子</p>
+      </div>
+    </div>
+
+    <!-- Add/Edit Child Modal -->
+    <div class="modal" id="childModal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title" id="childModalTitle">添加孩子</h3>
+          <button class="modal-close" id="childModalClose">×</button>
+        </div>
+        <form id="childForm">
+          <input type="hidden" id="childId">
+          <div class="form-group">
+            <label for="childName">名称 *</label>
+            <input type="text" id="childName" required placeholder="例如：大宝">
+          </div>
+          <div class="form-group">
+            <label for="childAvatar">头像</label>
+            <div class="avatar-selector">
+              <button type="button" class="avatar-option selected" data-avatar="👦">👦</button>
+              <button type="button" class="avatar-option" data-avatar="👧">👧</button>
+              <button type="button" class="avatar-option" data-avatar="👶">👶</button>
+              <button type="button" class="avatar-option" data-avatar="🧒">🧒</button>
+              <button type="button" class="avatar-option" data-avatar="👱">👱</button>
+              <button type="button" class="avatar-option" data-avatar="👩">👩</button>
+              <button type="button" class="avatar-option" data-avatar="👨">👨</button>
+            </div>
+            <input type="hidden" id="childAvatar" value="👦">
+          </div>
+          <div class="form-group">
+            <label for="childTheme">主题色</label>
+            <div class="theme-selector">
+              <button type="button" class="theme-option selected" data-theme="starry" style="background: linear-gradient(135deg, #0a0a1a, #1a1035);">🌌</button>
+              <button type="button" class="theme-option" data-theme="ocean" style="background: linear-gradient(135deg, #0a2a3a, #1a4a6a);">🌊</button>
+              <button type="button" class="theme-option" data-theme="forest" style="background: linear-gradient(135deg, #0a2a1a, #1a4a2a);">🌲</button>
+            </div>
+            <input type="hidden" id="childTheme" value="starry">
+          </div>
+          <div class="form-actions">
+            <button type="button" class="cancel-btn" id="childCancelBtn">取消</button>
+            <button type="submit" class="save-btn">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Add/Edit Template Modal -->
+    <div class="modal" id="templateModal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title" id="templateModalTitle">添加任务</h3>
+          <button class="modal-close" id="templateModalClose">×</button>
+        </div>
+        <form id="templateForm">
+          <input type="hidden" id="templateId">
+          <input type="hidden" id="templateChildId">
+          
+          <div class="form-group">
+            <label for="templateTitle">任务名称 *</label>
+            <input type="text" id="templateTitle" required placeholder="例如：写作业">
+          </div>
+          
+          <div class="form-group">
+            <label for="templateType">任务类型 *</label>
+            <select id="templateType" required>
+              <option value="flexible">弹性任务</option>
+              <option value="fixed">固定任务</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="templateCategory">分类</label>
+            <select id="templateCategory">
+              <option value="study">学习</option>
+              <option value="life">生活</option>
+              <option value="activity">活动</option>
+              <option value="school">学校</option>
+              <option value="general">其他</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="templateIcon">图标</label>
+            <div class="icon-selector">
+              <button type="button" class="icon-option selected" data-icon="📋">📋</button>
+              <button type="button" class="icon-option" data-icon="✏️">✏️</button>
+              <button type="button" class="icon-option" data-icon="📚">📚</button>
+              <button type="button" class="icon-option" data-icon="🏃">🏃</button>
+              <button type="button" class="icon-option" data-icon="🚿">🚿</button>
+              <button type="button" class="icon-option" data-icon="🪥">🪥</button>
+              <button type="button" class="icon-option" data-icon="🍎">🍎</button>
+              <button type="button" class="icon-option" data-icon="🎒">🎒</button>
+              <button type="button" class="icon-option" data-icon="🔤">🔤</button>
+              <button type="button" class="icon-option" data-icon="📖">📖</button>
+              <button type="button" class="icon-option" data-icon="🏫">🏫</button>
+              <button type="button" class="icon-option" data-icon="🧸">🧸</button>
+            </div>
+            <input type="hidden" id="templateIcon" value="📋">
+          </div>
+          
+          <div class="form-group">
+            <label for="templateColor">颜色</label>
+            <div class="color-selector">
+              <button type="button" class="color-option selected" data-color="#4A90D9" style="background: #4A90D9;"></button>
+              <button type="button" class="color-option" data-color="#7B68EE" style="background: #7B68EE;"></button>
+              <button type="button" class="color-option" data-color="#32CD32" style="background: #32CD32;"></button>
+              <button type="button" class="color-option" data-color="#FF8C00" style="background: #FF8C00;"></button>
+              <button type="button" class="color-option" data-color="#00CED1" style="background: #00CED1;"></button>
+              <button type="button" class="color-option" data-color="#87CEEB" style="background: #87CEEB;"></button>
+              <button type="button" class="color-option" data-color="#9370DB" style="background: #9370DB;"></button>
+              <button type="button" class="color-option" data-color="#FF69B4" style="background: #FF69B4;"></button>
+              <button type="button" class="color-option" data-color="#FFB6C1" style="background: #FFB6C1;"></button>
+              <button type="button" class="color-option" data-color="#FFA500" style="background: #FFA500;"></button>
+              <button type="button" class="color-option" data-color="#90EE90" style="background: #90EE90;"></button>
+              <button type="button" class="color-option" data-color="#00FFFF" style="background: #00FFFF;"></button>
+            </div>
+            <input type="hidden" id="templateColor" value="#4A90D9">
+          </div>
+          
+          <!-- Flexible task fields -->
+          <div class="form-group task-type-fields" id="flexibleFields">
+            <label for="templateDuration">预计时长（分钟）*</label>
+            <input type="number" id="templateDuration" min="1" max="480" placeholder="例如：60">
+          </div>
+          
+          <!-- Fixed task fields -->
+          <div class="form-group task-type-fields" id="fixedFields" style="display: none;">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="templateFixedStart">开始时间</label>
+                <input type="time" id="templateFixedStart">
+              </div>
+              <div class="form-group">
+                <label for="templateFixedEnd">结束时间</label>
+                <input type="time" id="templateFixedEnd">
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="cancel-btn" id="templateCancelBtn">取消</button>
+            <button type="submit" class="save-btn">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast" style="display: none;"></div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
