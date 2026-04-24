@@ -455,23 +455,27 @@ function renderTimebar() {
   });
 
   // 2.4 自由时间块
-  if (layout.freeMinutes > 0) {
-    const freePercent = (layout.freeMinutes / TOTAL_MINUTES) * 100;
-    // 自由时间从最后一个弹性任务的结束位置开始延续到 DAY_END
-    const lastFlexibleEnd = flexibleBlocks.length > 0
-      ? flexibleBlocks[flexibleBlocks.length - 1].endMinutes
-      : DAY_END;
-    const freeStartPct = ((lastFlexibleEnd - DAY_START) / TOTAL_MINUTES) * 100;
+  // 自由时间：从当前时间到第一个（最早）弹性任务开始之前
+  const firstFlexibleStart = flexibleBlocks.length > 0
+    ? Math.min(...flexibleBlocks.map(b => b.startMinutes))
+    : DAY_END;
+  const freeEnd = Math.min(firstFlexibleStart, DAY_END);
+  const freeStart = Math.max(nowMinutes, DAY_START);
+  const freeMinutes = Math.max(0, freeEnd - freeStart);
+
+  if (freeMinutes > 0) {
+    const leftPct = ((freeStart - DAY_START) / TOTAL_MINUTES) * 100;
+    const widthPct = ((freeEnd - freeStart) / TOTAL_MINUTES) * 100;
 
     const freeEl = document.createElement('div');
     freeEl.className = 'timebar-block free';
-    freeEl.style.left = `${freeStartPct}%`;
-    freeEl.style.width = `${Math.max(freePercent, 5)}%`;
+    freeEl.style.left = `${leftPct}%`;
+    freeEl.style.width = `${Math.max(widthPct, 5)}%`;
     freeEl.style.top = '50%';
     freeEl.style.transform = 'translateY(-50%)';
     freeEl.innerHTML = `
       <span class="block-name">🎉 自由时间</span>
-      <span class="block-time">${layout.freeMinutes} 分钟</span>
+      <span class="block-time">${freeMinutes} 分钟</span>
     `;
     row.appendChild(freeEl);
   }
