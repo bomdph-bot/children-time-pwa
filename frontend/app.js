@@ -222,28 +222,32 @@ function layoutTimebar(nowMinutes) {
   });
 
   // 3. 计算未完成的弹性任务（按 sort_order 从右往左排列）
-  const unfinishedFlexible = child.flexibleTasks
-    .filter(t => !t.completed && !t.overdue)
+  const pendingFlexible = child.flexibleTasks
+    .filter(t => !t.completed)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   // 4. 从 DAY_END 开始，从右往左排列弹性任务
+  //    期间实时检测 endMinutes <= nowMinutes → 标记为 overdue，下沉到补做区
   let cursor = DAY_END;
   const flexibleBlocks = [];
+  const overdueBlocks = [];
 
-  for (let i = unfinishedFlexible.length - 1; i >= 0; i--) {
-    const task = unfinishedFlexible[i];
+  for (let i = pendingFlexible.length - 1; i >= 0; i--) {
+    const task = pendingFlexible[i];
     const endMinutes = cursor;
     const startMinutes = cursor - task.durationMinutes;
 
-    // 是否被"挤压"（任务开始时间已过但未完成）
-    const squeezed = startMinutes < nowMinutes;
+    // 是否被"挤压"（任务开始时间已过但未完成，且未超时）
+    const squeezed = startMinutes < nowMinutes && endMinutes > nowMinutes;
+    // 是否已超时（结束时间已过）
+    const isOverdue = endMinutes <= nowMinutes;
 
     // 计算可见区域
     const visibleStart = Math.max(startMinutes, nowMinutes);
     const visibleEnd = endMinutes;
     const visibleDuration = Math.max(0, visibleEnd - visibleStart);
 
-    flexibleBlocks.unshift({
+    const block = {
       type: 'flexible',
       taskId: task.id,
       name: task.name,
@@ -253,14 +257,20 @@ function layoutTimebar(nowMinutes) {
       durationMinutes: task.durationMinutes,
       completed: false,
       squeezed,
-      overdue: !squeezed === false && endMinutes <= nowMinutes,
+      overdue: isOverdue,
       // 可见性
       visibleStart,
       visibleEnd,
       visibleDuration,
       // 紧迫感
       pressureLevel: 0,
-    });
+    };
+
+    if (isOverdue) {
+      overdueBlocks.push(block);
+    } else {
+      flexibleBlocks.unshift(block);
+    }
 
     cursor = startMinutes;
   }
@@ -268,8 +278,8 @@ function layoutTimebar(nowMinutes) {
   // 5. 计算剩余时间（用于自由时间）
   const remainingMinutes = Math.max(0, DAY_END - nowMinutes);
 
-  // 6. 计算未完成任务总时长
-  const unfinishedFlexibleMinutes = unfinishedFlexible.reduce((sum, t) => sum + t.durationMinutes, 0);
+  // 6. 计算未完成任务总时长（不含已超时任务，因为它们已移出主时间条）
+  const unfinishedFlexibleMinutes = flexibleBlocks.reduce((sum, b) => sum + b.durationMinutes, 0);
 
   // 7. 计算固定任务中剩余的时间
   const remainingFixedMinutes = fixedBlocks
@@ -298,7 +308,7 @@ function layoutTimebar(nowMinutes) {
     }
   });
 
-  // 10. 合并所有块（固定块 + 弹性块）
+  // 10. 合并所有块（固定块 + 弹性块，超时块不进主时间条）
   const blocks = [...fixedBlocks, ...flexibleBlocks];
 
   return {
@@ -307,8 +317,8 @@ function layoutTimebar(nowMinutes) {
     freeMinutes,
     remainingMinutes,
     pressureRatio,
-    // 超时任务（endMinutes <= nowMinutes 且未完成）
-    overtimeTasks: blocks.filter(b => b.overdue && b.type === 'flexible').map(b => ({
+    // 超时任务（从 overdueBlocks 计算，endMinutes <= nowMinutes）
+    overtimeTasks: overdueBlocks.map(b => ({
       ...b,
       overdueMinutes: nowMinutes - b.endMinutes,
     })),
@@ -552,11 +562,13 @@ function toggleTaskComplete(taskId, taskType) {
   const child = CHILDREN_DATA[currentChildId];
   if (!child) return;
 
-  if (taskType === 'fixed') {
-    const task = child.fixedTasks.find(t => t.id === taskId);
-    if (task) task.completed = !task.completed;
-  } else if (taskType === 'flexible') {
+  if (taskType === 'flexible') {
     const task = child.flexibleTasks.find(t => t.id === taskId);
+    if (!task) return;
+    if (!confirm(`完成「${task.name}」？`)) return;
+    task.completed = true;
+  } else if (taskType === 'fixed') {
+    const task = child.fixedTasks.find(t => t.id === taskId);
     if (task) task.completed = !task.completed;
   }
 
