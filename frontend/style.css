@@ -1,0 +1,733 @@
+/* ========================================
+   儿童时间管理 PWA - 梦幻夜空主题样式
+   Dream Night Sky Theme for Children
+   ======================================== */
+
+/* CSS Variables - 梦幻夜空蓝紫色系 */
+:root {
+  /* 主色调 */
+  --bg-deep: #0a0a2e;
+  --bg-mid: #141452;
+  --bg-light: #1e1e6b;
+
+  /* 渐变色彩 */
+  --gradient-purple: #667eea;
+  --gradient-blue: #764ba2;
+  --gradient-cyan: #00d2ff;
+
+  /* 任务颜色 */
+  --task-study: #FF6B9D;
+  --task-sport: #FFD93D;
+  --task-rest: #6BCB77;
+  --task-free: #4D96FF;
+
+  /* 状态颜色 */
+  --overtime-red: #FF4757;
+  --success-gold: #FFB800;
+  --glow-blue: rgba(77, 150, 255, 0.6);
+  --elapsed-dark: rgba(30, 30, 60, 0.8);
+
+  /* 文字 */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
+
+  /* 阴影 */
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.5);
+
+  /* 时间常量 */
+  --day-start: 7;
+  --day-end: 21;
+  --total-hours: 14;
+}
+
+/* Reset & Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+body {
+  background: linear-gradient(135deg, var(--bg-deep) 0%, var(--bg-mid) 50%, var(--bg-light) 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  min-width: 100vw;
+  position: relative;
+}
+
+/* ========================================
+   星空背景装饰
+   ======================================== */
+
+.stars {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.7), transparent),
+    radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 160px 120px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(2px 2px at 200px 50px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 250px 160px, rgba(255,255,255,0.5), transparent),
+    radial-gradient(2px 2px at 300px 90px, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 350px 200px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(2px 2px at 400px 130px, rgba(255,255,255,0.5), transparent);
+  background-size: 450px 250px;
+  animation: twinkle 4s ease-in-out infinite alternate;
+}
+
+.moon {
+  position: fixed;
+  top: 5%;
+  right: 8%;
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle at 30% 30%, #fffde7, #ffd54f);
+  border-radius: 50%;
+  box-shadow:
+    0 0 40px rgba(255, 213, 79, 0.6),
+    0 0 80px rgba(255, 213, 79, 0.3);
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* ========================================
+   主容器
+   ======================================== */
+
+.app-container {
+  position: relative;
+  z-index: 1;
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto auto;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 16px 24px;
+  overflow: hidden;
+}
+
+/* iPad 横屏适配 */
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 1366px;
+    margin: 0 auto;
+    padding: 20px 32px;
+    gap: 16px;
+  }
+}
+
+/* ========================================
+   孩子头像切换区
+   ======================================== */
+
+.child-selector {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  padding: 12px 0;
+}
+
+.child-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.child-avatar:active {
+  transform: scale(0.95);
+}
+
+.avatar-ring {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  padding: 4px;
+  background: linear-gradient(135deg, var(--gradient-purple), var(--gradient-blue));
+  transition: box-shadow 0.3s ease;
+}
+
+.child-avatar.active .avatar-ring {
+  box-shadow:
+    0 0 20px rgba(102, 126, 234, 0.8),
+    0 0 40px rgba(102, 126, 234, 0.4);
+}
+
+.avatar-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+.child-name {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.child-avatar.active .child-name {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ========================================
+   当前时间卡片
+   ======================================== */
+
+.time-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 16px 32px;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  align-self: center;
+}
+
+.time-display {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, var(--gradient-cyan), var(--gradient-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.date-display {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* 模拟时间指示器 */
+.sim-time-indicator {
+  margin-top: 8px;
+  padding: 4px 12px;
+  background: rgba(255, 184, 0, 0.2);
+  border-radius: 12px;
+  font-size: 12px;
+  color: var(--success-gold);
+  display: inline-block;
+}
+
+/* ========================================
+   主时间条区域
+   ======================================== */
+
+.timeline-area {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-scroll {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.timeline-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.timeline-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ========================================
+   时间条容器（核心）
+   ======================================== */
+
+.timebar-container {
+  position: relative;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-height: 120px;
+}
+
+/* 时间刻度尺 */
+.timebar-ruler {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.ruler-start, .ruler-end {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 36px;
+}
+
+.ruler-ticks {
+  flex: 1;
+  position: relative;
+  height: 16px;
+}
+
+.ruler-tick {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+}
+
+.ruler-tick::before {
+  content: '';
+  width: 1px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.ruler-tick-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+/* 时间条主体行 */
+.timebar-row {
+  position: relative;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* 已消耗时间区域（左侧暗色） */
+.timebar-elapsed {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--elapsed-dark);
+  border-right: 2px dashed rgba(255, 255, 255, 0.2);
+  z-index: 1;
+  transition: width 0.5s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+}
+
+.elapsed-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  opacity: 0.6;
+}
+
+/* 任务块基础样式 */
+.timebar-block {
+  position: relative;
+  height: 56px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-card);
+  z-index: 2;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.timebar-block::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: inherit;
+  filter: brightness(1.1);
+  z-index: -1;
+  border-radius: inherit;
+}
+
+.timebar-block:active {
+  transform: scale(0.97);
+}
+
+.timebar-block.completed {
+  opacity: 0.5;
+  filter: grayscale(40%);
+}
+
+.timebar-block.completed::after {
+  content: '✓';
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 12px;
+  color: white;
+  font-weight: bold;
+}
+
+/* 固定任务块 */
+.timebar-block.fixed {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* 弹性任务块 */
+.timebar-block.flexible {
+  border: 2px solid transparent;
+}
+
+/* 紧迫状态 - 边缘发光 */
+.timebar-block.urgent {
+  animation: urgent-pulse 1.5s ease-in-out infinite;
+  box-shadow:
+    var(--shadow-card),
+    0 0 15px rgba(255, 71, 87, 0.6),
+    inset 0 0 10px rgba(255, 71, 87, 0.3);
+}
+
+@keyframes urgent-pulse {
+  0%, 100% {
+    box-shadow:
+      var(--shadow-card),
+      0 0 15px rgba(255, 71, 87, 0.6),
+      inset 0 0 10px rgba(255, 71, 87, 0.3);
+  }
+  50% {
+    box-shadow:
+      var(--shadow-card),
+      0 0 25px rgba(255, 71, 87, 0.8),
+      inset 0 0 15px rgba(255, 71, 87, 0.5);
+  }
+}
+
+/* 严重紧迫 - 发热膨胀抖动 */
+.timebar-block.critical {
+  animation: critical-shake 0.5s ease-in-out infinite, critical-glow 1s ease-in-out infinite;
+  transform: scale(1.02);
+}
+
+@keyframes critical-shake {
+  0%, 100% { transform: translateX(0) scale(1.02); }
+  25% { transform: translateX(-2px) scale(1.02); }
+  75% { transform: translateX(2px) scale(1.02); }
+}
+
+@keyframes critical-glow {
+  0%, 100% {
+    box-shadow:
+      var(--shadow-card),
+      0 0 20px rgba(255, 71, 87, 0.7),
+      inset 0 0 15px rgba(255, 71, 87, 0.4);
+  }
+  50% {
+    box-shadow:
+      var(--shadow-card),
+      0 0 35px rgba(255, 71, 87, 0.9),
+      inset 0 0 20px rgba(255, 71, 87, 0.6);
+  }
+}
+
+/* 被挤压的任务（已过开始时间但未完成） */
+.timebar-block.squeezed {
+  filter: brightness(1.15);
+}
+
+.block-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.block-time {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 2px;
+}
+
+.block-duration {
+  position: absolute;
+  bottom: 3px;
+  right: 6px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* 自由时间块 - 蓝色荧光 */
+.timebar-block.free {
+  background: linear-gradient(135deg, var(--task-free), #2d7dd2);
+  box-shadow:
+    var(--shadow-card),
+    0 0 20px var(--glow-blue),
+    inset 0 0 15px rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(77, 150, 255, 0.5);
+}
+
+.timebar-block.free .block-name {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* ========================================
+   图例
+   ======================================== */
+
+.legend {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.legend-title {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.legend-items {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* ========================================
+   超时任务区域
+   ======================================== */
+
+.overtime-section {
+  background: rgba(255, 71, 87, 0.15);
+  border-radius: 12px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--overtime-red);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.overtime-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.overtime-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.overtime-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--overtime-red);
+  box-shadow: 0 0 8px var(--overtime-red);
+  animation: pulse-red 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.overtime-text {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ========================================
+   完成鼓励区
+   ======================================== */
+
+.encourage-section {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.encourage-bubble {
+  background: linear-gradient(135deg, rgba(255, 184, 0, 0.2), rgba(255, 107, 157, 0.2));
+  border-radius: 24px;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(255, 184, 0, 0.3);
+}
+
+.encourage-emoji {
+  font-size: 20px;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.encourage-emoji:last-child {
+  animation-delay: 0.3s;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.encourage-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--success-gold);
+}
+
+/* ========================================
+   家长入口按钮
+   ======================================== */
+
+.parent-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  font-size: 13px;
+  backdrop-filter: blur(8px);
+  z-index: 100;
+}
+
+.parent-btn:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.parent-btn span:first-child {
+  font-size: 18px;
+}
+
+.parent-btn-text {
+  font-weight: 500;
+}
+
+/* ========================================
+   滚动条样式
+   ======================================== */
+
+.timeline-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.timeline-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.timeline-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.timeline-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ========================================
+   Focus styles for accessibility
+   ======================================== */
+
+.child-avatar:focus-visible {
+  outline: 2px solid var(--gradient-cyan);
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+
+.timebar-block:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}

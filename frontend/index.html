@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="screen-orientation" content="landscape" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>儿童时间管理</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- 星空背景装饰 -->
+  <div class="stars" aria-hidden="true"></div>
+  <div class="moon" aria-hidden="true"></div>
+
+  <div class="app-container">
+    <!-- 顶部孩子切换区 -->
+    <header class="child-selector">
+      <div class="child-avatar active" data-child="1" role="button" tabindex="0" aria-label="大宝">
+        <div class="avatar-ring">
+          <div class="avatar-inner baby-emoji">👧</div>
+        </div>
+        <span class="child-name">大宝</span>
+      </div>
+      <div class="child-avatar" data-child="2" role="button" tabindex="0" aria-label="二宝">
+        <div class="avatar-ring">
+          <div class="avatar-inner baby-emoji">👦</div>
+        </div>
+        <span class="child-name">二宝</span>
+      </div>
+      <div class="child-avatar" data-child="3" role="button" tabindex="0" aria-label="三宝">
+        <div class="avatar-ring">
+          <div class="avatar-inner baby-emoji">👧</div>
+        </div>
+        <span class="child-name">三宝</span>
+      </div>
+      <div class="child-avatar" data-child="4" role="button" tabindex="0" aria-label="小宝">
+        <div class="avatar-ring">
+          <div class="avatar-inner baby-emoji">👶</div>
+        </div>
+        <span class="child-name">小宝</span>
+      </div>
+    </header>
+
+    <!-- 当前时间卡片 -->
+    <div class="time-card">
+      <div class="time-display" id="currentTime">--:--:--</div>
+      <div class="date-display" id="currentDate">----年--月--日</div>
+      <!-- 模拟时间指示器 -->
+      <div class="sim-time-indicator" id="simTimeIndicator" style="display:none;">
+        模拟时间: <span id="simTimeValue">--:--</span>
+      </div>
+    </div>
+
+    <!-- 主时间条区域 -->
+    <main class="timeline-area">
+      <div class="timeline-scroll">
+        <div class="timeline-header">
+          <span class="timeline-label">🕐 时间轴</span>
+          <span class="timeline-hint">点击任务标记完成</span>
+        </div>
+
+        <!-- 时间条容器 -->
+        <div class="timebar-container" id="timebarContainer">
+          <!-- 动态生成：已消耗区域 + 任务块 + 自由时间 -->
+        </div>
+
+        <!-- 图例 -->
+        <div class="legend">
+          <div class="legend-title">📋 任务图例</div>
+          <div class="legend-items">
+            <div class="legend-item">
+              <span class="legend-dot" style="background:#FF6B9D"></span>
+              <span>学习</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot" style="background:#FFD93D"></span>
+              <span>运动</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot" style="background:#6BCB77"></span>
+              <span>休息</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot" style="background:#4D96FF"></span>
+              <span>自由</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 超时任务区域 -->
+    <section class="overtime-section" id="overtimeSection">
+      <div class="section-title">⏰ 超时任务</div>
+      <div class="overtime-list" id="overtimeList">
+        <!-- 超时任务动态生成 -->
+      </div>
+    </section>
+
+    <!-- 完成鼓励区 -->
+    <section class="encourage-section" id="encourageSection">
+      <div class="encourage-bubble">
+        <span class="encourage-emoji">🌟</span>
+        <span class="encourage-text" id="encourageText">太棒了！继续保持！</span>
+        <span class="encourage-emoji">🌟</span>
+      </div>
+    </section>
+
+    <!-- 家长入口 -->
+    <button class="parent-btn" id="parentBtn" aria-label="家长入口">
+      <span>👨👩👧</span>
+      <span class="parent-btn-text">家长</span>
+    </button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
