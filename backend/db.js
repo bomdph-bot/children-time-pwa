@@ -295,4 +295,5 @@ module.exports = {
   init,
   generateTodayTasks,
   calculateOverdue,
+  getTodayDate,
 };
