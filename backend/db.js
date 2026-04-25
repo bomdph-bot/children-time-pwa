@@ -10,6 +10,15 @@ const fs = require('fs');
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_PATH = path.join(DATA_DIR, 'children_time.db');
 
+// 本地日期 helper（避免 UTC 偏移导致日期错误）
+function getTodayDate() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 // 确保 data 目录存在
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -173,7 +182,7 @@ function initDefaultData() {
  * @returns {Array} 今日任务列表
  */
 function generateTodayTasks(childId) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayDate();
   const now = new Date().toISOString();
 
   // 检查是否已有今日任务
@@ -253,7 +262,7 @@ function calculateOverdue(task) {
   if (task.completed) return 0;
 
   const now = new Date();
-  const today = now.toISOString().split('T')[0];
+  const today = getTodayDate();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
   // 固定任务：根据固定时间判断
