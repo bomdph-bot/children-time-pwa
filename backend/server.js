@@ -4,6 +4,7 @@
  */
 
 const express = require('express');
+const cors = require('cors');
 const dbModule = require('./db');
 
 const app = express();
@@ -13,6 +14,24 @@ const PORT = process.env.PORT || 3000;
 dbModule.init();
 
 // 中间件
+app.use(cors({
+  origin: (origin, callback) => {
+    // 允许同源（前后端同端口部署时 origin 为 undefined）
+    if (!origin) return callback(null, true);
+    // 允许所有 localhost 变体
+    if (/^https?:\/\/(localhost|127\.0\.0\.1|0{0,2}1::1?):\d+$/.test(origin)) {
+      return callback(null, true);
+    }
+    // 允许所有局域网 IP（192.168.x.x, 10.x.x.x, 172.16-31.x.x）
+    if (/^https?:\/\/(192\.168\.|10\.|172\.\d{1,3}\.)\d+\.\d+/.test(origin)) {
+      return callback(null, true);
+    }
+    // 其他 origin 拒绝（生产环境可进一步放开）
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  credentials: true,
+}));
 app.use(express.json());
 
 // 静态文件服务（前端）
