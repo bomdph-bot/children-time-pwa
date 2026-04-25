@@ -36,6 +36,27 @@ const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 
 // =====================
+// 数据库迁移（轻量）
+// =====================
+function migrateChildrenTable(db) {
+  const pragma = db.prepare("PRAGMA table_info(children)").all();
+  const hasUpdatedAt = pragma.some(col => col.name === 'updated_at');
+  if (!hasUpdatedAt) {
+    db.exec("ALTER TABLE children ADD COLUMN updated_at TEXT");
+    console.log('[DB] 迁移 children 表：添加 updated_at 字段');
+  }
+}
+
+function migrateTemplatesTable(db) {
+  const pragma = db.prepare("PRAGMA table_info(task_templates)").all();
+  const hasUpdatedAt = pragma.some(col => col.name === 'updated_at');
+  if (!hasUpdatedAt) {
+    db.exec("ALTER TABLE task_templates ADD COLUMN updated_at TEXT");
+    console.log('[DB] 迁移 task_templates 表：添加 updated_at 字段');
+  }
+}
+
+// =====================
 // Schema 初始化
 // =====================
 function initSchema() {
@@ -287,6 +308,8 @@ function calculateOverdue(task) {
  */
 function init() {
   initSchema();
+  migrateChildrenTable(db);
+  migrateTemplatesTable(db);
   initDefaultData();
   console.log('[DB] 数据库初始化完成');
 }
