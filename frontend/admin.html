@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>家长后台 - 儿童时间管理</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <div class="admin-container">
+    <!-- 登录页 -->
+    <div class="login-panel" id="loginPanel">
+      <div class="login-card">
+        <h1>👨‍👩‍👧 家长后台</h1>
+        <p class="login-hint">请输入管理员 PIN</p>
+        <form id="loginForm">
+          <input type="password" id="pinInput" placeholder="请输入 PIN" maxlength="10" autocomplete="off" />
+          <button type="submit">登录</button>
+        </form>
+        <p class="login-error" id="loginError"></p>
+      </div>
+    </div>
+
+    <!-- 管理后台 -->
+    <div class="admin-panel" id="adminPanel" style="display:none;">
+      <!-- 顶部导航 -->
+      <header class="admin-header">
+        <h2>📋 家长后台</h2>
+        <div class="header-actions">
+          <button class="btn-secondary" id="logoutBtn">退出登录</button>
+        </div>
+      </header>
+
+      <!-- Tab 切换 -->
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="children">👧 孩子管理</button>
+        <button class="tab-btn" data-tab="templates">📝 任务模板</button>
+      </div>
+
+      <!-- 孩子管理面板 -->
+      <div class="tab-panel" id="childrenPanel">
+        <div class="panel-toolbar">
+          <button class="btn-primary" id="addChildBtn">+ 新增孩子</button>
+        </div>
+        <div class="children-list" id="childrenList">
+          <!-- 动态渲染 -->
+        </div>
+      </div>
+
+      <!-- 任务模板面板 -->
+      <div class="tab-panel" id="templatesPanel" style="display:none;">
+        <div class="template-child-selector">
+          <label>选择孩子：</label>
+          <select id="templateChildSelect">
+            <!-- 动态渲染 -->
+          </select>
+        </div>
+        <div class="panel-toolbar">
+          <button class="btn-primary" id="addTemplateBtn">+ 新增模板</button>
+        </div>
+        <div class="templates-list" id="templatesList">
+          <!-- 动态渲染 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 孩子编辑弹窗 -->
+  <div class="modal" id="childModal" style="display:none;">
+    <div class="modal-content">
+      <h3 id="childModalTitle">新增孩子</h3>
+      <form id="childForm">
+        <input type="hidden" id="childForm_id" />
+        <div class="form-group">
+          <label for="childForm_name">名称 *</label>
+          <input type="text" id="childForm_name" placeholder="例如：大宝" required />
+        </div>
+        <div class="form-group">
+          <label for="childForm_avatar">头像（emoji）</label>
+          <input type="text" id="childForm_avatar" placeholder="例如：👧" maxlength="4" />
+        </div>
+        <div class="form-group">
+          <label for="childForm_theme">主题色</label>
+          <select id="childForm_theme">
+            <option value="blue">蓝色</option>
+            <option value="pink">粉色</option>
+            <option value="purple">紫色</option>
+            <option value="green">绿色</option>
+            <option value="orange">橙色</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="childModalCancel">取消</button>
+          <button type="submit" class="btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 模板编辑弹窗 -->
+  <div class="modal" id="templateModal" style="display:none;">
+    <div class="modal-content">
+      <h3 id="templateModalTitle">新增任务模板</h3>
+      <form id="templateForm">
+        <input type="hidden" id="templateForm_id" />
+        <div class="form-group">
+          <label for="templateForm_title">任务名称 *</label>
+          <input type="text" id="templateForm_title" placeholder="例如：阅读 30 分钟" required />
+        </div>
+        <div class="form-group">
+          <label for="templateForm_type">任务类型 *</label>
+          <select id="templateForm_type" required>
+            <option value="flexible">弹性任务</option>
+            <option value="fixed">固定任务</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="templateForm_category">分类</label>
+          <select id="templateForm_category">
+            <option value="life">生活</option>
+            <option value="study">学习</option>
+            <option value="health">健康</option>
+            <option value="school">学校</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
+        <!-- 弹性任务字段 -->
+        <div class="form-group flexible-field" id="durationGroup">
+          <label for="templateForm_duration_minutes">预计时长（分钟）</label>
+          <input type="number" id="templateForm_duration_minutes" placeholder="例如：30" min="1" />
+        </div>
+        <!-- 固定任务字段 -->
+        <div class="form-group fixed-field" style="display:none;" id="fixedTimeGroup">
+          <label>开始时间</label>
+          <div class="time-inputs">
+            <input type="number" id="templateForm_fixed_start_hour" placeholder="时" min="0" max="23" /> :
+            <input type="number" id="templateForm_fixed_start_min" placeholder="分" min="0" max="59" />
+          </div>
+        </div>
+        <div class="form-group fixed-field" style="display:none;" id="fixedEndGroup">
+          <label>结束时间</label>
+          <div class="time-inputs">
+            <input type="number" id="templateForm_fixed_end_hour" placeholder="时" min="0" max="23" /> :
+            <input type="number" id="templateForm_fixed_end_min" placeholder="分" min="0" max="59" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="templateForm_color">颜色</label>
+          <input type="color" id="templateForm_color" value="#4A90D9" />
+        </div>
+        <div class="form-group">
+          <label for="templateForm_icon">图标（emoji）</label>
+          <input type="text" id="templateForm_icon" placeholder="例如：📚" maxlength="4" />
+        </div>
+        <div class="form-group">
+          <label for="templateForm_sort_order">排序顺序</label>
+          <input type="number" id="templateForm_sort_order" placeholder="数字越小越靠前" min="0" />
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="templateForm_enabled" checked /> 启用此任务
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="templateModalCancel">取消</button>
+          <button type="submit" class="btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
