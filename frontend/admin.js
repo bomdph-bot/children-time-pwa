@@ -3,7 +3,13 @@
  * 职责：PIN 登录、孩子管理、任务模板 CRUD
  */
 
-const API_BASE = 'http://localhost:3000';
+// API Base（动态检测，不写死 localhost）
+function getApiBase() {
+  const host = window.location.hostname;
+  const port = 3000; // 后端固定端口
+  return `http://${host}:${port}`;
+}
+const API_BASE = getApiBase();
 const ADMIN_PIN_KEY = 'admin_pin';
 
 // =====================
