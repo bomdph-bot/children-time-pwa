@@ -4,6 +4,7 @@
  */
 
 const express = require('express');
+const cors = require('cors');
 const dbModule = require('./db');
 
 const app = express();
@@ -13,6 +14,11 @@ const PORT = process.env.PORT || 3000;
 dbModule.init();
 
 // 中间件
+app.use(cors({
+  origin: ['http://localhost:8080', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  credentials: true,
+}));
 app.use(express.json());
 
 // 静态文件服务（前端）

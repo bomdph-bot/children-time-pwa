@@ -519,10 +519,9 @@ async function switchChild(childId) {
 
   currentChildId = childId;
 
-  // 更新头像高亮
-  elements.childAvatars.forEach(avatar => {
-    const id = avatar.dataset.child;
-    avatar.classList.toggle('active', id == childId);
+  // 头像高亮：每次从 DOM 重新查询（避免 renderChildAvatars 后 NodeList 失效）
+  document.querySelectorAll('.child-avatar').forEach(avatar => {
+    avatar.classList.toggle('active', avatar.dataset.child == childId);
   });
 
   // 加载该孩子的今日任务
@@ -658,6 +657,22 @@ function bindParentBtn() {
   }
 }
 
+/**
+ * 重置今日任务
+ */
+async function resetToday() {
+  if (!currentChildId) return;
+  if (!confirm('确定要重置今日任务吗？这将清空所有完成状态。')) return;
+  try {
+    currentTasks = await apiPost(`/api/children/${currentChildId}/today/reset`, {});
+    renderTimebar();
+    updateEncourage();
+  } catch (err) {
+    console.error('重置失败:', err);
+    alert('重置失败，请稍后重试');
+  }
+}
+
 // ============================================
 // 初始化
 // ============================================
@@ -665,6 +680,12 @@ function bindParentBtn() {
 async function init() {
   // 绑定家长按钮
   bindParentBtn();
+
+  // 绑定重置按钮
+  const resetBtn = document.getElementById('resetBtn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', resetToday);
+  }
 
   // 启动时钟
   updateTime();
