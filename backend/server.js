@@ -122,7 +122,7 @@ app.post('/api/tasks/:taskId/uncomplete', (req, res) => {
 app.post('/api/children/:childId/today/reset', (req, res) => {
   try {
     const { childId } = req.params;
-    const today = new Date().toISOString().split('T')[0];
+    const today = dbModule.getTodayDate();
 
     // 检查孩子是否存在
     const child = dbModule.db.prepare('SELECT * FROM children WHERE id = ?').get(childId);
@@ -172,7 +172,7 @@ app.post('/api/children/:childId/tasks/reorder', (req, res) => {
     transaction();
 
     // 返回更新后的任务
-    const today = new Date().toISOString().split('T')[0];
+    const today = dbModule.getTodayDate();
     const tasks = dbModule.db.prepare(
       'SELECT * FROM daily_tasks WHERE child_id = ? AND date = ? ORDER BY sort_order'
     ).all(childId, today);
