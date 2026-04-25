@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  children-time:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: children-time-pwa
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # SQLite data persistence - critical for not losing data on restart
+      - children-time-data:/app/backend/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  # Named volume for SQLite database persistence
+  # This ensures data survives container restarts and rebuilds
+  children-time-data:
+    driver: local

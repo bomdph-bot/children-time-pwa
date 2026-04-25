@@ -678,6 +678,15 @@ async function resetToday() {
 // ============================================
 
 async function init() {
+  // 注册 Service Worker（PWA 离线支持）
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js').then((reg) => {
+      console.log('[SW] Service Worker 已注册:', reg.scope);
+    }).catch((err) => {
+      console.error('[SW] Service Worker 注册失败:', err);
+    });
+  }
+
   // 绑定家长按钮
   bindParentBtn();
 
