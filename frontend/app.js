@@ -13,18 +13,16 @@ const DAY_END = 21 * 60;    // 21:00 = 1260 分钟
 const TOTAL_MINUTES = DAY_END - DAY_START;  // 840 分钟
 
 // ============================================
-// API Base（动态检测，不写死 localhost）
+// API Base（动态跟随当前访问 URL）
 // ============================================
 
 /**
  * 获取 API 基础地址
- * 后端固定端口 3000，前端访问时使用当前页面的 hostname
- * Issue #8 会处理更完善的 NAS 部署适配
+ * 使用 window.location.origin 动态跟随当前入口，
+ * 兼容 3000 / 3001 / NAS IP / 反代等各种部署场景。
  */
 function getApiBase() {
-  const host = window.location.hostname;
-  const port = 3000; // 后端固定端口
-  return `http://${host}:${port}`;
+  return window.location.origin;
 }
 
 const API_BASE = getApiBase();
@@ -678,6 +676,15 @@ async function resetToday() {
 // ============================================
 
 async function init() {
+  // 注册 Service Worker（PWA 离线支持）
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js').then((reg) => {
+      console.log('[SW] Service Worker 已注册:', reg.scope);
+    }).catch((err) => {
+      console.error('[SW] Service Worker 注册失败:', err);
+    });
+  }
+
   // 绑定家长按钮
   bindParentBtn();
 

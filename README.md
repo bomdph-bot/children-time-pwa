@@ -91,3 +91,133 @@ open http://localhost:8080
 ## 详细开发指南
 
 见：`docs/development-guide.md`
+
+---
+
+## NAS Docker 部署（群晖 Synology NAS）
+
+### 系统要求
+
+- Synology NAS 支持 Docker（套件中心安装 Docker）
+- Node.js 22+ 镜像
+- 建议 4GB+ RAM
+
+### 快速部署
+
+#### 方法一：Docker Compose（推荐）
+
+```bash
+# 1. SSH 登录 NAS
+ssh admin@你的NAS_IP
+
+# 2. 创建目录
+mkdir -p ~/children-time && cd ~/children-time
+
+# 3. 上传项目文件（或 git clone）
+git clone https://github.com/bomdph-bot/children-time-pwa.git .
+
+# 4. 启动容器
+docker-compose up -d
+
+# 5. 查看日志确认启动
+docker-compose logs -f
+```
+
+#### 方法二：手动 Docker 命令
+
+```bash
+# 1. 构建镜像
+docker build -t children-time-pwa .
+
+# 2. 创建数据目录
+mkdir -p ./data
+
+# 3. 运行容器
+docker run -d \
+  --name children-time-pwa \
+  -p 3000:3000 \
+  -v $(pwd)/data:/app/backend/data \
+  --restart unless-stopped \
+  children-time-pwa
+```
+
+### 验证部署
+
+部署完成后，访问以下地址确认服务正常：
+
+| 检查项 | 地址 | 期望结果 |
+|--------|------|----------|
+| 健康检查 | `http://NAS_IP:3000/health` | `{"status":"ok",...}` |
+| 儿童端 | `http://NAS_IP:3000/` | 儿童时间管理界面 |
+| 家长后台 | `http://NAS_IP:3000/admin.html` | 家长登录界面 |
+
+### 数据持久化
+
+**重要**：SQLite 数据库文件存储在 `/app/backend/data`，通过 Docker volume 挂载持久化。
+
+- 容器重启后数据不丢失
+- 备份时只需备份 `backend/data/` 目录
+
+```bash
+# 备份数据库
+cp ./data/children_time.db ./data/backup_$(date +%Y%m%d).db
+```
+
+### iPad 添加到主屏幕（PWA）
+
+1. 用 iPad Safari 打开 `http://NAS_IP:3000`
+2. 点击 Safari 工具栏的 **分享按钮**（方框+箭头）
+3. 选择 **"添加到主屏幕"**
+4. 确认后，桌面会出现 App 图标
+5. 图标会横屏模式启动，进入全屏 PWA 体验
+
+### 局域网访问注意事项
+
+- 确保 NAS 防火墙允许 3000 端口入站
+- 设备与 NAS 必须在同一局域网
+- 推荐给 NAS 设置固定 IP（DHCP 保留）
+
+### 更新部署
+
+```bash
+# 1. 拉取新代码
+git pull origin main
+
+# 2. 重新构建镜像
+docker-compose build
+
+# 3. 重启容器
+docker-compose up -d
+```
+
+### Docker Compose 完整配置
+
+```yaml
+version: '3.8'
+services:
+  children-time:
+    build: .
+    container_name: children-time-pwa
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/backend/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+```
+
+### 故障排查
+
+| 问题 | 可能原因 | 解决方案 |
+|------|----------|----------|
+| 页面打不开 | 端口未开放 | 在 NAS 防火墙/DSM 防火墙开放 3000 |
+| 数据丢失 | volume 未挂载 | 检查 docker-compose volumes 配置 |
+| 容器启动失败 | 端口被占用 | 改 ports 映射到其他端口如 `3001:3000` |
+| API 请求失败 | CORS 问题 | 确认使用 `http://NAS_IP:3000` 而非 localhost |
