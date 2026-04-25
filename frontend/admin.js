@@ -3,6 +3,7 @@
  * 职责：PIN 登录、孩子管理、任务模板 CRUD
  */
 
+const API_BASE = 'http://localhost:3000';
 const ADMIN_PIN_KEY = 'admin_pin';
 
 // =====================
@@ -35,7 +36,7 @@ const $addTemplateBtn = document.getElementById('addTemplateBtn');
 // Auth helper
 // =====================
 function getAuthHeader() {
-  return { 'X-Admin-Pin': ADMIN_PIN };
+  return { 'X-Admin-Pin': sessionStorage.getItem(ADMIN_PIN_KEY) || '' };
 }
 
 // =====================
@@ -49,7 +50,7 @@ $loginForm.addEventListener('submit', async (e) => {
     return;
   }
   try {
-    const res = await fetch('/api/admin/login', {
+    const res = await fetch(API_BASE + '/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pin }),
@@ -106,7 +107,7 @@ $tabBtns.forEach((btn) => {
 // =====================
 async function loadChildren() {
   try {
-    const res = await fetch('/api/admin/children', { headers: getAuthHeader() });
+    const res = await fetch(API_BASE + '/api/admin/children', { headers: getAuthHeader() });
     if (res.status === 401) { handleAuthFail(); return; }
     children = await res.json();
     renderChildren();
@@ -156,7 +157,7 @@ window.editChild = function(id) {
 window.deleteChild = async function(id) {
   if (!confirm('确定删除？该孩子的所有任务模板和每日任务也会被删除。')) return;
   try {
-    const res = await fetch(`/api/admin/children/${id}`, {
+    const res = await fetch(API_BASE + `/api/admin/children/${id}`, {
       method: 'DELETE',
       headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
     });
@@ -191,7 +192,7 @@ $addTemplateBtn.addEventListener('click', () => {
 async function loadTemplates(childId) {
   if (!childId) return;
   try {
-    const res = await fetch(`/api/admin/children/${childId}/templates`, { headers: getAuthHeader() });
+    const res = await fetch(API_BASE + `/api/admin/children/${childId}/templates`, { headers: getAuthHeader() });
     if (res.status === 401) { handleAuthFail(); return; }
     templates = await res.json();
     renderTemplates();
@@ -246,7 +247,7 @@ window.editTemplate = function(id) {
 window.deleteTemplate = async function(id) {
   if (!confirm('确定删除该任务模板？')) return;
   try {
-    const res = await fetch(`/api/admin/templates/${id}`, {
+    const res = await fetch(API_BASE + `/api/admin/templates/${id}`, {
       method: 'DELETE',
       headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
     });
@@ -289,13 +290,13 @@ $childForm.addEventListener('submit', async (e) => {
   try {
     let res;
     if (id) {
-      res = await fetch(`/api/admin/children/${id}`, {
+      res = await fetch(API_BASE + `/api/admin/children/${id}`, {
         method: 'PUT',
         headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
     } else {
-      res = await fetch('/api/admin/children', {
+      res = await fetch(API_BASE + '/api/admin/children', {
         method: 'POST',
         headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -398,14 +399,14 @@ $templateForm.addEventListener('submit', async (e) => {
   try {
     let res;
     if (id) {
-      res = await fetch(`/api/admin/templates/${id}`, {
+      res = await fetch(API_BASE + `/api/admin/templates/${id}`, {
         method: 'PUT',
         headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
     } else {
       const childId = $templateModal.dataset.childId;
-      res = await fetch(`/api/admin/children/${childId}/templates`, {
+      res = await fetch(API_BASE + `/api/admin/children/${childId}/templates`, {
         method: 'POST',
         headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -441,7 +442,7 @@ function init() {
     // 自动验证保存的 PIN
     (async () => {
       try {
-        const res = await fetch('/api/admin/login', {
+        const res = await fetch(API_BASE + '/api/admin/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pin: savedPin }),

@@ -46,7 +46,8 @@ function initSchema() {
       avatar TEXT,
       theme TEXT,
       sort_order INTEGER DEFAULT 0,
-      created_at TEXT NOT NULL
+      created_at TEXT NOT NULL,
+      updated_at TEXT
     );
 
     CREATE TABLE IF NOT EXISTS task_templates (

@@ -29,7 +29,7 @@ app.use(cors({
     // 其他 origin 拒绝（生产环境可进一步放开）
     callback(new Error(`CORS: origin ${origin} not allowed`));
   },
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
 }));
 app.use(express.json());
@@ -361,6 +361,7 @@ app.put('/api/admin/templates/:templateId', adminAuth, (req, res) => {
     }
     const { title, type, category, color, icon, duration_minutes, fixed_start_minutes, fixed_end_minutes, sort_order, enabled } = req.body;
     const now = new Date().toISOString();
+    const enabledInt = enabled ? 1 : 0;
     dbModule.db.prepare(`
       UPDATE task_templates SET
         title = COALESCE(NULLIF(?, ''), title),
@@ -385,7 +386,7 @@ app.put('/api/admin/templates/:templateId', adminAuth, (req, res) => {
       fixed_start_minutes !== undefined ? fixed_start_minutes : template.fixed_start_minutes,
       fixed_end_minutes !== undefined ? fixed_end_minutes : template.fixed_end_minutes,
       sort_order !== undefined ? sort_order : template.sort_order,
-      enabled !== undefined ? enabled : template.enabled,
+      enabled !== undefined ? enabledInt : template.enabled,
       now,
       templateId
     );
