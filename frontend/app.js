@@ -1,27 +1,33 @@
 /**
  * 儿童时间管理 PWA - 主应用脚本
- * 职责：孩子切换、动态时间条渲染、时间轴布局算法
+ * Issue #6: 前后端联调
+ * 职责：孩子切换、动态时间条渲染、时间轴布局算法、API 交互
  */
 
 // ============================================
-// 时间常量
+// 时间常量（与后端一致）
 // ============================================
 
 const DAY_START = 7 * 60;   // 07:00 = 420 分钟
 const DAY_END = 21 * 60;    // 21:00 = 1260 分钟
 const TOTAL_MINUTES = DAY_END - DAY_START;  // 840 分钟
-const TOTAL_HOURS = 14;     // 14 小时跨度
 
 // ============================================
-// 任务类型配置
+// API Base（动态检测，不写死 localhost）
 // ============================================
 
-const TASK_TYPES = {
-  study: { color: '#FF6B9D', label: '学习' },
-  sport: { color: '#FFD93D', label: '运动' },
-  rest: { color: '#6BCB77', label: '休息' },
-  free: { color: '#4D96FF', label: '自由' },
-};
+/**
+ * 获取 API 基础地址
+ * 后端固定端口 3000，前端访问时使用当前页面的 hostname
+ * Issue #8 会处理更完善的 NAS 部署适配
+ */
+function getApiBase() {
+  const host = window.location.hostname;
+  const port = 3000; // 后端固定端口
+  return `http://${host}:${port}`;
+}
+
+const API_BASE = getApiBase();
 
 // ============================================
 // 鼓励语
@@ -36,75 +42,14 @@ const ENCOURAGES = [
 ];
 
 // ============================================
-// 静态模拟数据（4个孩子）
-// ============================================
-
-const CHILDREN_DATA = {
-  1: {
-    name: '大宝',
-    emoji: '👧',
-    // fixed 任务：有固定开始/结束时间（单位：小时，如 8.5 = 08:30）
-    fixedTasks: [
-      { id: 'f1', name: '上学', type: 'study', startHour: 8, endHour: 17.5, completed: false },
-    ],
-    // flexible 任务：有预计时长，按 sort_order 从右往左排列
-    flexibleTasks: [
-      { id: 't1', name: '吃早餐', type: 'rest', durationMinutes: 30, sortOrder: 1, completed: false },
-      { id: 't2', name: '写作业', type: 'study', durationMinutes: 60, sortOrder: 2, completed: false },
-      { id: 't3', name: '运动打卡', type: 'sport', durationMinutes: 20, sortOrder: 3, completed: false },
-      { id: 't4', name: '收拾书包', type: 'rest', durationMinutes: 10, sortOrder: 4, completed: false },
-      { id: 't5', name: '洗澡', type: 'rest', durationMinutes: 20, sortOrder: 5, completed: false },
-      { id: 't6', name: '刷牙洗脸', type: 'rest', durationMinutes: 5, sortOrder: 6, completed: false },
-      { id: 't7', name: '阅读', type: 'study', durationMinutes: 30, sortOrder: 7, completed: false },
-    ],
-  },
-  2: {
-    name: '二宝',
-    emoji: '👦',
-    fixedTasks: [
-      { id: 'f2', name: '上学', type: 'study', startHour: 8, endHour: 16.5, completed: true },
-    ],
-    flexibleTasks: [
-      { id: 't8', name: '英语口语', type: 'study', durationMinutes: 30, sortOrder: 1, completed: true },
-      { id: 't9', name: '钢琴练习', type: 'study', durationMinutes: 40, sortOrder: 2, completed: false },
-      { id: 't10', name: '踢足球', type: 'sport', durationMinutes: 60, sortOrder: 3, completed: false },
-      { id: 't11', name: '自由游戏', type: 'free', durationMinutes: 45, sortOrder: 4, completed: false },
-    ],
-  },
-  3: {
-    name: '三宝',
-    emoji: '👧',
-    fixedTasks: [
-      { id: 'f3', name: '上学', type: 'study', startHour: 8.5, endHour: 16, completed: false },
-    ],
-    flexibleTasks: [
-      { id: 't12', name: '早操', type: 'sport', durationMinutes: 20, sortOrder: 1, completed: true },
-      { id: 't13', name: '数学练习', type: 'study', durationMinutes: 45, sortOrder: 2, completed: false },
-      { id: 't14', name: '自由玩耍', type: 'free', durationMinutes: 90, sortOrder: 3, completed: false },
-      { id: 't15', name: '睡前故事', type: 'rest', durationMinutes: 15, sortOrder: 4, completed: false },
-    ],
-  },
-  4: {
-    name: '小宝',
-    emoji: '👶',
-    fixedTasks: [
-      // 小宝没有固定任务
-    ],
-    flexibleTasks: [
-      { id: 't16', name: '吃早餐', type: 'rest', durationMinutes: 30, sortOrder: 1, completed: true },
-      { id: 't17', name: '看动画片', type: 'free', durationMinutes: 30, sortOrder: 2, completed: false },
-      { id: 't18', name: '搭积木', type: 'free', durationMinutes: 45, sortOrder: 3, completed: false },
-      { id: 't19', name: '午睡', type: 'rest', durationMinutes: 120, sortOrder: 4, completed: false },
-    ],
-  },
-};
-
-// ============================================
 // 当前状态
 // ============================================
 
-let currentChildId = 1;
+let currentChildId = null;      // 当前选中的孩子 ID
+let childrenList = [];           // 孩子列表（从 API 加载）
+let currentTasks = [];           // 当前孩子的今日任务（从 API 加载）
 let currentTimeInterval = null;
+let draggedTaskId = null;        // 正在拖动的任务 ID
 
 // ============================================
 // DOM 引用
@@ -122,38 +67,42 @@ const elements = {
 };
 
 // ============================================
+// API 封装
+// ============================================
+
+async function apiGet(path) {
+  const res = await fetch(`${API_BASE}${path}`);
+  if (!res.ok) throw new Error(`API error: ${res.status} ${path}`);
+  return res.json();
+}
+
+async function apiPost(path, body) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status} ${path}`);
+  return res.json();
+}
+
+// ============================================
 // 模拟时间支持
 // ============================================
 
-/**
- * 获取模拟时间（优先）或实际时间（分钟数从 00:00 开始）
- */
 function getCurrentMinutes() {
-  // 1. 优先使用 window.SIMULATED_TIME（控制台调试用）
   if (window.SIMULATED_TIME !== undefined) {
     return parseTimeToMinutes(window.SIMULATED_TIME);
   }
-
-  // 2. 检查 URL 参数 ?time=18:30
   const urlParams = new URLSearchParams(window.location.search);
   const timeParam = urlParams.get('time');
-  if (timeParam) {
-    return parseTimeToMinutes(timeParam);
-  }
-
-  // 3. 使用实际时间
+  if (timeParam) return parseTimeToMinutes(timeParam);
   const now = new Date();
   return now.getHours() * 60 + now.getMinutes();
 }
 
-/**
- * 将 "HH:MM" 或 "H:MM" 格式转换为分钟数
- */
 function parseTimeToMinutes(timeStr) {
-  if (typeof timeStr === 'number') {
-    // 如果是数字，假设是小时（如 18.5 = 18:30）
-    return Math.floor(timeStr * 60);
-  }
+  if (typeof timeStr === 'number') return Math.floor(timeStr * 60);
   const parts = timeStr.split(':');
   if (parts.length !== 2) return DAY_START;
   const hours = parseInt(parts[0], 10);
@@ -162,126 +111,87 @@ function parseTimeToMinutes(timeStr) {
   return hours * 60 + mins;
 }
 
-/**
- * 将分钟数转换为 "HH:MM" 格式
- */
 function minutesToTimeStr(minutes) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 }
 
-/**
- * 将分钟数转换为小时数（如 8.5 = 08:30）
- */
-function minutesToHours(minutes) {
-  return minutes / 60;
-}
-
 // ============================================
-// 核心布局算法
+// 核心布局算法（适配后端数据模型）
 // ============================================
 
 /**
- * 布局时间条 - 计算所有区块的位置和尺寸
- *
- * @param {number} nowMinutes - 当前时间（分钟，从 00:00 开始）
- * @returns {Object} 布局结果
+ * 布局时间条
+ * 后端任务模型：
+ *   - fixed:   fixed_start_minutes, fixed_end_minutes（绝对时间）
+ *   - flexible: duration_minutes + sort_order（从 DAY_END 向左排列）
  */
 function layoutTimebar(nowMinutes) {
-  const child = CHILDREN_DATA[currentChildId];
-  if (!child) return { blocks: [], elapsedPercent: 0, freeMinutes: TOTAL_MINUTES };
+  if (!currentTasks.length) return { blocks: [], elapsedPercent: 0, freeMinutes: TOTAL_MINUTES, overtimeTasks: [] };
 
-  // 1. 计算已消耗时间百分比
+  // 已消耗时间百分比
   let elapsedPercent = 0;
   if (nowMinutes >= DAY_START) {
     elapsedPercent = Math.min(((nowMinutes - DAY_START) / TOTAL_MINUTES) * 100, 100);
-  } else if (nowMinutes < DAY_START) {
-    elapsedPercent = 0;
   }
 
-  // 2. 计算固定任务占用的时间区间
-  const fixedBlocks = child.fixedTasks.map(task => {
-    const startMinutes = task.startHour * 60;
-    const endMinutes = task.endHour * 60;
+  // 按 sort_order 从小到大排序
+  const sorted = [...currentTasks].sort((a, b) => a.sort_order - b.sort_order);
+
+  // 分离固定任务和弹性任务
+  const fixedTasks = sorted.filter(t => t.type === 'fixed');
+  const flexibleTasks = sorted.filter(t => t.type === 'flexible');
+
+  // 固定任务块：直接按绝对时间定位
+  const fixedBlocks = fixedTasks.map(task => {
+    const startMinutes = task.fixed_start_minutes;
+    const endMinutes = task.fixed_end_minutes;
+    const isOverdue = !task.completed && task.overdue;
     return {
-      type: 'fixed',
-      taskId: task.id,
-      name: task.name,
-      color: TASK_TYPES[task.type]?.color || '#888',
+      ...task,
       startMinutes,
       endMinutes,
-      durationMinutes: endMinutes - startMinutes,
-      completed: task.completed,
-      // 计算可见区域（任务在当前时间之后才显示）
       visibleStart: Math.max(startMinutes, nowMinutes),
       visibleEnd: endMinutes,
-      // 是否已超时
-      overdue: !task.completed && endMinutes <= nowMinutes,
     };
   });
 
-  // 3. 计算未完成的弹性任务（按 sort_order 从右往左排列）
-  const pendingFlexible = child.flexibleTasks
-    .filter(t => !t.completed)
-    .sort((a, b) => a.sortOrder - b.sortOrder);
+  // 弹性任务块：从 DAY_END 向左按 sort_order 排列
+  // 未完成任务从右往左排（sort_order 小的在右侧，大的在左侧）
+  // 已完成任务也显示但淡化
+  const pendingFlexible = flexibleTasks.filter(t => !t.completed);
+  const completedFlexible = flexibleTasks.filter(t => t.completed);
 
-  // 4. 从 DAY_END 开始，从右往左排列弹性任务
-  //    期间实时检测 endMinutes <= nowMinutes → 标记为 overdue，下沉到补做区
-  let cursor = DAY_END;
   const flexibleBlocks = [];
-  const overdueBlocks = [];
+  let cursor = DAY_END;
 
-  for (let i = pendingFlexible.length - 1; i >= 0; i--) {
+  // 未完成的弹性任务：从 DAY_END 向左排
+  for (let i = 0; i < pendingFlexible.length; i++) {
     const task = pendingFlexible[i];
+    const duration = task.duration_minutes || 30;
     const endMinutes = cursor;
-    const startMinutes = cursor - task.durationMinutes;
+    const startMinutes = cursor - duration;
 
-    // 是否被"挤压"（任务开始时间已过但未完成，且未超时）
-    const squeezed = startMinutes < nowMinutes && endMinutes > nowMinutes;
-    // 是否已超时（结束时间已过）
-    const isOverdue = endMinutes <= nowMinutes;
+    const isOverdue = !task.completed && task.overdue;
 
-    // 计算可见区域
-    const visibleStart = Math.max(startMinutes, nowMinutes);
-    const visibleEnd = endMinutes;
-    const visibleDuration = Math.max(0, visibleEnd - visibleStart);
-
-    const block = {
-      type: 'flexible',
-      taskId: task.id,
-      name: task.name,
-      color: TASK_TYPES[task.type]?.color || '#888',
+    flexibleBlocks.push({
+      ...task,
       startMinutes,
       endMinutes,
-      durationMinutes: task.durationMinutes,
-      completed: false,
-      squeezed,
+      visibleStart: Math.max(startMinutes, nowMinutes),
+      visibleEnd: endMinutes,
       overdue: isOverdue,
-      // 可见性
-      visibleStart,
-      visibleEnd,
-      visibleDuration,
-      // 紧迫感
-      pressureLevel: 0,
-    };
-
-    if (isOverdue) {
-      overdueBlocks.push(block);
-    } else {
-      flexibleBlocks.unshift(block);
-    }
+    });
 
     cursor = startMinutes;
   }
 
-  // 5. 计算剩余时间（用于自由时间）
-  const remainingMinutes = Math.max(0, DAY_END - nowMinutes);
+  // 已完成的弹性任务：从 cursor 继续向左排（显示但不占主时间）
+  // 已完成任务不参与时间轴布局，只在完成列表显示
+  // 这里我们把已完成任务也渲染但标记 completed
 
-  // 6. 计算未完成任务总时长（不含已超时任务，因为它们已移出主时间条）
-  const unfinishedFlexibleMinutes = flexibleBlocks.reduce((sum, b) => sum + b.durationMinutes, 0);
-
-  // 7. 计算固定任务中剩余的时间
+  // 计算固定任务中未完成且未超时的剩余时间
   const remainingFixedMinutes = fixedBlocks
     .filter(b => !b.completed && !b.overdue && b.endMinutes > nowMinutes)
     .reduce((sum, b) => {
@@ -289,39 +199,45 @@ function layoutTimebar(nowMinutes) {
       return sum + Math.max(0, remaining);
     }, 0);
 
-  // 8. 自由时间 = 剩余时间 - 未完成弹性任务 - 剩余固定任务
-  const freeMinutes = Math.max(0, remainingMinutes - unfinishedFlexibleMinutes - remainingFixedMinutes);
+  // 剩余未完成的弹性任务总时长
+  const pendingDuration = pendingFlexible.reduce((sum, t) => sum + (t.duration_minutes || 30), 0);
 
-  // 9. 计算紧迫感
-  const pressureRatio = unfinishedFlexibleMinutes / Math.max(1, remainingMinutes - remainingFixedMinutes);
+  // 剩余总时间
+  const remainingMinutes = Math.max(0, DAY_END - nowMinutes);
 
-  // 分配紧迫等级给弹性任务块
+  // 自由时间 = 剩余时间 - 未完成固定任务 - 未完成弹性任务
+  const freeMinutes = Math.max(0, remainingMinutes - pendingDuration - remainingFixedMinutes);
+
+  // 计算紧迫感
+  const pressureRatio = pendingDuration / Math.max(1, remainingMinutes - remainingFixedMinutes);
+
   flexibleBlocks.forEach(block => {
     if (pressureRatio <= 0.8) {
-      block.pressureLevel = 0; // 正常
+      block.pressureLevel = 0;
     } else if (pressureRatio <= 1.0) {
-      block.pressureLevel = 1; // 轻微
+      block.pressureLevel = 1;
     } else if (pressureRatio <= 1.2) {
-      block.pressureLevel = 2; // 紧迫
+      block.pressureLevel = 2;
     } else {
-      block.pressureLevel = 3; // 严重
+      block.pressureLevel = 3;
     }
   });
 
-  // 10. 合并所有块（固定块 + 弹性块，超时块不进主时间条）
-  const blocks = [...fixedBlocks, ...flexibleBlocks];
+  // 超时任务（overdue=1 且未完成）
+  const overdueTasks = currentTasks
+    .filter(t => t.overdue && !t.completed)
+    .map(t => ({
+      ...t,
+      overdueMinutes: nowMinutes - (t.fixed_end_minutes || (t.duration_minutes || 30)),
+    }));
 
   return {
-    blocks,
+    blocks: [...fixedBlocks, ...flexibleBlocks],
     elapsedPercent,
     freeMinutes,
     remainingMinutes,
     pressureRatio,
-    // 超时任务（从 overdueBlocks 计算，endMinutes <= nowMinutes）
-    overtimeTasks: overdueBlocks.map(b => ({
-      ...b,
-      overdueMinutes: nowMinutes - b.endMinutes,
-    })),
+    overtimeTasks: overdueTasks,
   };
 }
 
@@ -329,27 +245,6 @@ function layoutTimebar(nowMinutes) {
 // 渲染时间条
 // ============================================
 
-/**
- * 计算某个时间区间在时间条中的宽度百分比
- */
-function getWidthPercent(startMinutes, endMinutes, nowMinutes) {
-  const visibleStart = Math.max(startMinutes, nowMinutes);
-  const visibleEnd = endMinutes;
-  const visibleDuration = Math.max(0, visibleEnd - visibleStart);
-  return (visibleDuration / TOTAL_MINUTES) * 100;
-}
-
-/**
- * 计算某个时间点在时间条中的左边偏移百分比
- */
-function getLeftPercent(minutes, nowMinutes) {
-  if (minutes <= nowMinutes) return 0;
-  return ((minutes - nowMinutes) / TOTAL_MINUTES) * 100;
-}
-
-/**
- * 渲染时间条到 DOM
- */
 function renderTimebar() {
   const nowMinutes = getCurrentMinutes();
   const layout = layoutTimebar(nowMinutes);
@@ -357,7 +252,7 @@ function renderTimebar() {
   const container = elements.timebarContainer;
   container.innerHTML = '';
 
-  // 1. 渲染时间刻度尺
+  // 时间刻度尺
   const ruler = document.createElement('div');
   ruler.className = 'timebar-ruler';
   ruler.innerHTML = `
@@ -367,24 +262,21 @@ function renderTimebar() {
   `;
   container.appendChild(ruler);
 
-  // 生成刻度（每小时一个）
-  const rulerTicks = ruler.querySelector('#rulerTicks');
   for (let h = 7; h <= 21; h++) {
     const percent = ((h * 60 - DAY_START) / TOTAL_MINUTES) * 100;
     const tick = document.createElement('div');
     tick.className = 'ruler-tick';
     tick.style.left = `${percent}%`;
-    tick.innerHTML = `
-      <span class="ruler-tick-label">${h}:00</span>
-    `;
-    rulerTicks.appendChild(tick);
+    tick.innerHTML = `<span class="ruler-tick-label">${h}:00</span>`;
+    ruler.querySelector('#rulerTicks').appendChild(tick);
   }
 
-  // 2. 渲染时间条主体行
+  // 时间条主体行
   const row = document.createElement('div');
   row.className = 'timebar-row';
+  row.id = 'timebarRow';
 
-  // 2.1 已消耗区域（左侧暗色）
+  // 已消耗区域
   const elapsed = document.createElement('div');
   elapsed.className = 'timebar-elapsed';
   elapsed.style.width = `${layout.elapsedPercent}%`;
@@ -396,86 +288,40 @@ function renderTimebar() {
   }
   row.appendChild(elapsed);
 
-  // 2.2 固定任务块
+  // 固定任务块
   layout.blocks
     .filter(b => b.type === 'fixed' && b.visibleEnd > nowMinutes && b.visibleStart < DAY_END)
     .forEach(block => {
       const startPct = ((block.startMinutes - DAY_START) / TOTAL_MINUTES) * 100;
       const widthPct = ((block.endMinutes - block.startMinutes) / TOTAL_MINUTES) * 100;
+      if (widthPct <= 0) return;
 
-      if (widthPct <= 0) return; // 跳过不可见的
-
-      const blockEl = document.createElement('div');
-      blockEl.className = `timebar-block fixed${block.completed ? ' completed' : ''}${block.overdue ? ' overdue' : ''}`;
-      blockEl.style.backgroundColor = block.color;
-      blockEl.style.left = `${startPct}%`;
-      blockEl.style.width = `${Math.max(widthPct, 3)}%`;
-      blockEl.dataset.taskId = block.taskId;
-      blockEl.dataset.taskType = 'fixed';
-
-      blockEl.innerHTML = `
-        <span class="block-name">${block.name}</span>
-        <span class="block-time">${minutesToTimeStr(block.startMinutes)} - ${minutesToTimeStr(block.endMinutes)}</span>
-      `;
-
+      const blockEl = makeTaskBlock(block, startPct, widthPct);
       row.appendChild(blockEl);
     });
 
-  // 2.3 弹性任务块
-  const flexibleBlocks = layout.blocks.filter(b => b.type === 'flexible');
+  // 弹性任务块
+  layout.blocks
+    .filter(b => b.type === 'flexible')
+    .forEach(block => {
+      const startPct = ((block.startMinutes - DAY_START) / TOTAL_MINUTES) * 100;
+      const widthPct = ((block.endMinutes - block.startMinutes) / TOTAL_MINUTES) * 100;
+      if (widthPct <= 0) return;
 
-  flexibleBlocks.forEach(block => {
-    const startPct = ((block.startMinutes - DAY_START) / TOTAL_MINUTES) * 100;
-    const widthPct = ((block.endMinutes - block.startMinutes) / TOTAL_MINUTES) * 100;
+      const blockEl = makeTaskBlock(block, startPct, widthPct);
+      row.appendChild(blockEl);
+    });
 
-    if (widthPct <= 0) return;
-
-    const blockEl = document.createElement('div');
-    blockEl.className = `timebar-block flexible${block.completed ? ' completed' : ''}`;
-
-    // 紧迫状态
-    if (block.pressureLevel >= 2) {
-      blockEl.classList.add(block.pressureLevel >= 3 ? 'critical' : 'urgent');
-    } else if (block.pressureLevel === 1) {
-      blockEl.classList.add('pressure-1');
-    }
-
-    // 挤压状态
-    if (block.squeezed) {
-      blockEl.classList.add('squeezed');
-    }
-
-    blockEl.style.backgroundColor = block.color;
-    blockEl.style.left = `${startPct}%`;
-    blockEl.style.width = `${widthPct}%`;
-    blockEl.style.top = '50%';
-    blockEl.style.transform = 'translateY(-50%)';
-    blockEl.dataset.taskId = block.taskId;
-    blockEl.dataset.taskType = 'flexible';
-
-    const timeRange = block.durationMinutes >= 60
-      ? `${Math.floor(block.durationMinutes / 60)}h${block.durationMinutes % 60 > 0 ? block.durationMinutes % 60 + 'm' : ''}`
-      : `${block.durationMinutes}m`;
-
-    blockEl.innerHTML = `
-      <span class="block-name">${block.name}</span>
-      <span class="block-time">${timeRange}</span>
-      <span class="block-duration">${timeRange}</span>
-    `;
-
-    row.appendChild(blockEl);
-  });
-
-  // 2.4 自由时间块
-  // 自由时间：从当前时间到第一个（最早）弹性任务开始之前
-  const firstFlexibleStart = flexibleBlocks.length > 0
-    ? Math.min(...flexibleBlocks.map(b => b.startMinutes))
+  // 自由时间块
+  const pendingBlocks = layout.blocks.filter(b => !b.completed && b.type === 'flexible');
+  const firstPendingStart = pendingBlocks.length > 0
+    ? Math.min(...pendingBlocks.map(b => b.startMinutes))
     : DAY_END;
-  const freeEnd = Math.min(firstFlexibleStart, DAY_END);
+  const freeEnd = Math.min(firstPendingStart, DAY_END);
   const freeStart = Math.max(nowMinutes, DAY_START);
-  const freeMinutes = Math.max(0, freeEnd - freeStart);
+  const freeDuration = Math.max(0, freeEnd - freeStart);
 
-  if (freeMinutes > 0) {
+  if (freeDuration > 5) { // 至少 5 分钟才显示
     const leftPct = ((freeStart - DAY_START) / TOTAL_MINUTES) * 100;
     const widthPct = ((freeEnd - freeStart) / TOTAL_MINUTES) * 100;
 
@@ -483,46 +329,56 @@ function renderTimebar() {
     freeEl.className = 'timebar-block free';
     freeEl.style.left = `${leftPct}%`;
     freeEl.style.width = `${Math.max(widthPct, 5)}%`;
-    freeEl.style.top = '50%';
-    freeEl.style.transform = 'translateY(-50%)';
     freeEl.innerHTML = `
       <span class="block-name">🎉 自由时间</span>
-      <span class="block-time">${freeMinutes} 分钟</span>
+      <span class="block-time">${freeDuration} 分钟</span>
     `;
     row.appendChild(freeEl);
   }
 
   container.appendChild(row);
 
-  // 3. 渲染超时任务
-  renderOvertime(layout.overtimeTasks, nowMinutes);
+  // 超时任务
+  renderOvertime(layout.overtimeTasks);
 
-  // 4. 绑定任务点击事件
+  // 绑定任务点击和拖动事件
   bindTaskEvents();
 
-  // 5. 更新模拟时间指示器
+  // 更新模拟时间指示器
   updateSimIndicator(nowMinutes);
 }
 
-/**
- * 更新模拟时间指示器
- */
-function updateSimIndicator(nowMinutes) {
-  const isSimulated = window.SIMULATED_TIME !== undefined ||
-    new URLSearchParams(window.location.search).has('time');
+function makeTaskBlock(block, leftPct, widthPct) {
+  const blockEl = document.createElement('div');
+  blockEl.className = `timebar-block ${block.type}`;
+  blockEl.style.left = `${leftPct}%`;
+  blockEl.style.width = `${Math.max(widthPct, 3)}%`;
+  blockEl.dataset.taskId = block.id;
+  blockEl.dataset.taskType = block.type;
+  blockEl.draggable = block.type === 'flexible'; // 只有弹性任务可拖动排序
 
-  if (isSimulated) {
-    elements.simTimeIndicator.style.display = 'inline-block';
-    elements.simTimeValue.textContent = minutesToTimeStr(nowMinutes);
-  } else {
-    elements.simTimeIndicator.style.display = 'none';
-  }
+  if (block.completed) blockEl.classList.add('completed');
+  if (block.overdue) blockEl.classList.add('overdue');
+  if (block.pressureLevel >= 3) blockEl.classList.add('critical');
+  else if (block.pressureLevel >= 2) blockEl.classList.add('urgent');
+  else if (block.pressureLevel === 1) blockEl.classList.add('pressure-1');
+
+  blockEl.style.backgroundColor = block.color;
+
+  const timeRange = block.type === 'fixed'
+    ? `${minutesToTimeStr(block.fixed_start_minutes)} - ${minutesToTimeStr(block.fixed_end_minutes)}`
+    : `${block.duration_minutes || 30}m`;
+
+  blockEl.innerHTML = `
+    <span class="block-name">${block.icon || ''} ${block.title}</span>
+    <span class="block-time">${timeRange}</span>
+    ${block.type === 'flexible' ? `<span class="block-duration drag-handle" title="长按拖动排序">⇄</span>` : ''}
+  `;
+
+  return blockEl;
 }
 
-/**
- * 渲染超时任务列表
- */
-function renderOvertime(overtimeTasks, nowMinutes) {
+function renderOvertime(overtimeTasks) {
   const listEl = elements.overtimeList;
 
   if (overtimeTasks.length === 0) {
@@ -538,13 +394,22 @@ function renderOvertime(overtimeTasks, nowMinutes) {
   listEl.innerHTML = overtimeTasks.map(task => `
     <div class="overtime-item">
       <span class="overtime-dot"></span>
-      <span class="overtime-text">${task.name} — 需要补做 / 超时 ${task.overdueMinutes} 分钟</span>
+      <span class="overtime-text">${task.icon || ''} ${task.title} — 需要补做</span>
     </div>
   `).join('');
 }
 
+function updateSimIndicator(nowMinutes) {
+  const isSimulated =
+    window.SIMULATED_TIME !== undefined ||
+    new URLSearchParams(window.location.search).has('time');
+
+  elements.simTimeIndicator.style.display = isSimulated ? 'inline-block' : 'none';
+  elements.simTimeValue.textContent = minutesToTimeStr(nowMinutes);
+}
+
 // ============================================
-// 任务交互
+// 任务交互（完成/取消完成）
 // ============================================
 
 function bindTaskEvents() {
@@ -553,49 +418,183 @@ function bindTaskEvents() {
     block.addEventListener('click', () => {
       const taskId = block.dataset.taskId;
       const taskType = block.dataset.taskType;
-      if (taskId && taskType) {
-        toggleTaskComplete(taskId, taskType);
-      }
+      if (taskId && taskType) toggleTaskComplete(taskId, taskType);
     });
+
+    // 拖动排序（仅弹性任务）
+    if (block.dataset.taskType === 'flexible') {
+      block.addEventListener('dragstart', onDragStart);
+      block.addEventListener('dragover', onDragOver);
+      block.addEventListener('drop', onDrop);
+      block.addEventListener('dragend', onDragEnd);
+    }
   });
 }
 
-function toggleTaskComplete(taskId, taskType) {
-  const child = CHILDREN_DATA[currentChildId];
-  if (!child) return;
+function onDragStart(e) {
+  draggedTaskId = e.target.dataset.taskId;
+  e.target.style.opacity = '0.5';
+  e.dataTransfer.effectAllowed = 'move';
+}
 
-  if (taskType === 'flexible') {
-    const task = child.flexibleTasks.find(t => t.id === taskId);
-    if (!task) return;
-    if (!confirm(`完成「${task.name}」？`)) return;
-    task.completed = true;
-  } else if (taskType === 'fixed') {
-    const task = child.fixedTasks.find(t => t.id === taskId);
-    if (task) task.completed = !task.completed;
-  }
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
 
+function onDrop(e) {
+  e.preventDefault();
+  const targetTaskId = e.currentTarget.dataset.taskId;
+  if (!draggedTaskId || draggedTaskId === targetTaskId) return;
+
+  // 交换 sort_order
+  const draggedTask = currentTasks.find(t => t.id === draggedTaskId);
+  const targetTask = currentTasks.find(t => t.id === targetTaskId);
+  if (!draggedTask || !targetTask) return;
+
+  // 乐观更新 UI
+  const draggedOrder = draggedTask.sort_order;
+  const targetOrder = targetTask.sort_order;
+
+  // 判断拖动方向： dragged 拖到 target 右侧 → dragged.sort_order = targetOrder + 1
+  // 实际交换两个任务的 sort_order
+  const tempOrder = draggedTask.sort_order;
+  draggedTask.sort_order = targetTask.sort_order;
+  targetTask.sort_order = tempOrder;
+
+  // 重新渲染
   renderTimebar();
-  updateEncourage();
+
+  // 调用后端 reorder API
+  const pendingFlexible = currentTasks
+    .filter(t => t.type === 'flexible')
+    .sort((a, b) => a.sort_order - b.sort_order);
+
+  const taskIds = pendingFlexible.map(t => t.id);
+
+  apiPost(`/api/children/${currentChildId}/tasks/reorder`, { taskIds }).catch(err => {
+    console.error('Reorder failed:', err);
+    // 失败时重新加载以恢复正确顺序
+    loadChildTasks(currentChildId);
+  });
+}
+
+function onDragEnd(e) {
+  draggedTaskId = null;
+  e.target.style.opacity = '';
+}
+
+async function toggleTaskComplete(taskId, taskType) {
+  const task = currentTasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  const action = task.completed ? 'uncomplete' : 'complete';
+  const confirmMsg = task.completed
+    ? `取消完成「${task.title}」？`
+    : `完成「${task.title}」？`;
+
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const updated = await apiPost(`/api/tasks/${taskId}/${action}`, {});
+    // 更新本地状态
+    const idx = currentTasks.findIndex(t => t.id === taskId);
+    if (idx !== -1) {
+      currentTasks[idx] = updated;
+    }
+    renderTimebar();
+    updateEncourage();
+  } catch (err) {
+    console.error('Toggle complete failed:', err);
+    alert('操作失败，请重试');
+  }
 }
 
 // ============================================
 // 孩子切换
 // ============================================
 
-function switchChild(childId) {
-  if (!CHILDREN_DATA[childId]) return;
+async function switchChild(childId) {
+  if (childId === currentChildId) return;
 
   currentChildId = childId;
 
   // 更新头像高亮
   elements.childAvatars.forEach(avatar => {
-    const id = parseInt(avatar.dataset.child, 10);
-    avatar.classList.toggle('active', id === childId);
+    const id = avatar.dataset.child;
+    avatar.classList.toggle('active', id == childId);
   });
 
-  // 重新渲染时间条
+  // 加载该孩子的今日任务
+  await loadChildTasks(childId);
+
   renderTimebar();
   updateEncourage();
+}
+
+async function loadChildTasks(childId) {
+  try {
+    currentTasks = await apiGet(`/api/children/${childId}/today`);
+  } catch (err) {
+    console.error('Failed to load tasks:', err);
+    currentTasks = [];
+  }
+}
+
+async function loadChildren() {
+  try {
+    childrenList = await apiGet('/api/children');
+
+    // 如果还没有选中孩子，默认选第一个
+    if (!currentChildId && childrenList.length > 0) {
+      currentChildId = childrenList[0].id;
+
+      // 更新头像区域（动态渲染，不再用静态 HTML）
+      renderChildAvatars();
+
+      // 加载第一个孩子的任务
+      await loadChildTasks(currentChildId);
+    }
+  } catch (err) {
+    console.error('Failed to load children:', err);
+    // 显示错误提示
+    elements.timebarContainer.innerHTML = '<div style="text-align:center;color:#ff6b6b;padding:20px;">加载失败，请刷新重试</div>';
+  }
+}
+
+/**
+ * 动态渲染孩子头像（替代静态 HTML 中的硬编码）
+ */
+function renderChildAvatars() {
+  const selector = document.querySelector('.child-selector');
+  if (!selector) return;
+
+  selector.innerHTML = childrenList.map(child => `
+    <div class="child-avatar${child.id === currentChildId ? ' active' : ''}"
+         data-child="${child.id}"
+         role="button"
+         tabindex="0"
+         aria-label="${child.name}">
+      <div class="avatar-ring">
+        <div class="avatar-inner baby-emoji">${child.avatar || '👧'}</div>
+      </div>
+      <span class="child-name">${child.name}</span>
+    </div>
+  `).join('');
+
+  // 重新绑定头像点击事件
+  selector.querySelectorAll('.child-avatar').forEach(avatar => {
+    avatar.addEventListener('click', () => {
+      const childId = avatar.dataset.child;
+      switchChild(childId);
+    });
+    avatar.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        switchChild(avatar.dataset.child);
+      }
+    });
+  });
 }
 
 // ============================================
@@ -604,12 +603,9 @@ function switchChild(childId) {
 
 function updateTime() {
   const now = new Date();
-
-  // 格式化时间 HH:MM:SS
   const timeStr = now.toTimeString().slice(0, 8);
   elements.currentTime.textContent = timeStr;
 
-  // 格式化日期
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
   const date = now.getDate();
@@ -623,14 +619,16 @@ function updateTime() {
 // ============================================
 
 function updateEncourage() {
-  const child = CHILDREN_DATA[currentChildId];
-  if (!child) return;
+  if (!currentTasks.length) {
+    elements.encourageText.textContent = '加载中...';
+    return;
+  }
 
-  const totalFlexible = child.flexibleTasks.length;
-  const completedFlexible = child.flexibleTasks.filter(t => t.completed).length;
+  const totalFlexible = currentTasks.filter(t => t.type === 'flexible').length;
+  const completedFlexible = currentTasks.filter(t => t.type === 'flexible' && t.completed).length;
   const progress = totalFlexible > 0 ? completedFlexible / totalFlexible : 0;
 
-  let text = ENCOURAGES[0];
+  let text;
   if (progress >= 1) {
     text = '全部完成！你太厉害了！🏆';
   } else if (progress >= 0.75) {
@@ -647,27 +645,6 @@ function updateEncourage() {
 }
 
 // ============================================
-// 头像点击绑定
-// ============================================
-
-function bindAvatarEvents() {
-  elements.childAvatars.forEach(avatar => {
-    const handler = () => {
-      const childId = parseInt(avatar.dataset.child, 10);
-      switchChild(childId);
-    };
-
-    avatar.addEventListener('click', handler);
-    avatar.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        handler();
-      }
-    });
-  });
-}
-
-// ============================================
 // 家长入口按钮
 // ============================================
 
@@ -676,6 +653,7 @@ function bindParentBtn() {
   if (btn) {
     btn.addEventListener('click', () => {
       console.log('家长入口被点击');
+      // Issue #7 会实现家长端
     });
   }
 }
@@ -684,16 +662,16 @@ function bindParentBtn() {
 // 初始化
 // ============================================
 
-function init() {
-  // 绑定头像点击
-  bindAvatarEvents();
-
+async function init() {
   // 绑定家长按钮
   bindParentBtn();
 
   // 启动时钟
   updateTime();
   currentTimeInterval = setInterval(updateTime, 1000);
+
+  // 加载孩子列表（API）
+  await loadChildren();
 
   // 渲染时间条
   renderTimebar();
@@ -718,6 +696,7 @@ function init() {
   };
 
   console.log('💡 调试提示: 可用 window.setSimulatedTime("18:30") 模拟不同时间');
+  console.log(`[API] 后端地址: ${API_BASE}`);
 }
 
 // 启动
